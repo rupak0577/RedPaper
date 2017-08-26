@@ -2,12 +2,17 @@ package com.ruflux.redpaper.post;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
 
+import com.ruflux.redpaper.R;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.databinding.FragmentCardBinding;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 public class PostHolder extends RecyclerView.ViewHolder implements
@@ -28,8 +33,16 @@ public class PostHolder extends RecyclerView.ViewHolder implements
 
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
         mBinding.textCardItemDomain.setText(mItem.getDomain());
-        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).
-                fit().into(mBinding.imageCardItemThumb);
+        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).fit().
+                into(mBinding.imageCardItemThumb);
+
+        // Workaround for issue with FAB
+        // https://stackoverflow.com/questions/39388978/android-floating-action-button-in-wrong-position
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                mBinding.fabCardItem.getLayoutParams();
+        params.anchorGravity = Gravity.BOTTOM | GravityCompat.END;
+        params.setAnchorId(mBinding.imageCardItemThumb.getId());
+        mBinding.fabCardItem.setLayoutParams(params);
         mBinding.fabCardItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,7 +57,7 @@ public class PostHolder extends RecyclerView.ViewHolder implements
     }
 
     @Override
-    public void setPresenter(@NonNull PostContract.Presenter presenter) {
+    public void attachPresenter(@NonNull PostContract.Presenter presenter) {
         mPresenter = presenter;
     }
 

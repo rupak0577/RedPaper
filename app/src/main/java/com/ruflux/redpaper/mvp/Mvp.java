@@ -9,7 +9,7 @@ public interface Mvp {
     }
 
     interface BaseView<T> {
-        void setPresenter(T presenter);
+        void attachPresenter(T presenter);
 
         Context getActivityContext();
     }

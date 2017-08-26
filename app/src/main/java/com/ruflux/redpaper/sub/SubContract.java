@@ -10,9 +10,11 @@ interface SubContract {
     interface Presenter extends Mvp.BasePresenter {
         void loadPosts();
 
-        void notifyPostsLoaded(List<Post> posts);
+        void notifyLoadSuccess(List<Post> posts);
 
         void notifyLoadFailure(int statusCode);
+
+        void attachTo(View view);
     }
 
     interface View extends Mvp.BaseView<Presenter> {

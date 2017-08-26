@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">RedPaper</string>
+
+    <string name="drawer_item_0">Earth</string>
+    <string name="drawer_item_1">Road</string>
+    <string name="drawer_item_2">Rural</string>
+    <string name="drawer_item_3">Abandoned</string>
 </resources>

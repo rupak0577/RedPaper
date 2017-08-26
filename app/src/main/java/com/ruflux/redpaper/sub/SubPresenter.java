@@ -5,37 +5,41 @@ import android.widget.Toast;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.data.remote.RemoteSource;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class SubPresenter implements SubContract.Presenter {
 
-    private SubContract.View mView;
+    private WeakReference<SubContract.View> mView;
     private RemoteSource mRemoteSource;
 
-    public SubPresenter(SubContract.View view) {
-        this.mView = view;
-        this.mView.setPresenter(this);
-
-        this.mRemoteSource = RemoteSource.getRemoteSource(this);
+    public SubPresenter() {
+        mRemoteSource = RemoteSource.getRemoteSource();
     }
 
     @Override
     public void loadPosts() {
-        mView.startLoadProgress();
-        mRemoteSource.requestPosts(mView.getPage());
+        mView.get().startLoadProgress();
+        mRemoteSource.requestPosts(mView.get().getPage(), this);
     }
 
     @Override
-    public void notifyPostsLoaded(List<Post> posts) {
-        mView.stopLoadProgress();
-        mView.showPosts(posts);
+    public void notifyLoadSuccess(List<Post> posts) {
+        mView.get().stopLoadProgress();
+        mView.get().showPosts(posts);
     }
 
     @Override
     public void notifyLoadFailure(int statusCode) {
-        mView.stopLoadProgress();
-        Toast.makeText(mView.getActivityContext(), "Error " + statusCode, Toast.LENGTH_SHORT)
+        mView.get().stopLoadProgress();
+        Toast.makeText(mView.get().getActivityContext(), "Error " + statusCode, Toast.LENGTH_SHORT)
                 .show();
+    }
+
+    @Override
+    public void attachTo(SubContract.View view) {
+        mView = new WeakReference<SubContract.View>(view);
+        mView.get().attachPresenter(this);
     }
 
     @Override
@@ -46,6 +50,5 @@ public class SubPresenter implements SubContract.Presenter {
     @Override
     public void stop() {
         mRemoteSource.cancel();
-        mView = null;
     }
 }

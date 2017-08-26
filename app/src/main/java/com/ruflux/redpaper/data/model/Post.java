@@ -43,14 +43,21 @@ public class Post {
                 JSONObject child = children.getJSONObject(i);
                 JSONObject innerData = child.getJSONObject("data");
 
-                if (innerData.getString("domain").startsWith("s"))
+                if (innerData.getString("domain").startsWith("r") ||
+                        innerData.getString("domain").startsWith("s")) // domain = reddit/self, skip
                     continue;
                 m = new Post();
                 m.title = innerData.getString("title");
                 m.url = innerData.getString("url");
                 m.id = innerData.getString("id");
                 m.domain = innerData.getString("domain");
-                m.thumbnailUrl = innerData.getString("thumbnail");
+
+                JSONObject preview = innerData.getJSONObject("preview");
+                JSONArray images = preview.getJSONArray("images");
+                JSONArray res = images.getJSONObject(0).getJSONArray("resolutions");
+
+                JSONObject variant = res.getJSONObject(2); // The 3rd variant is the closest
+                m.thumbnailUrl = variant.getString("url").replaceAll("&amp;", "&");
                 mModel.add(m);
             }
         } catch (JSONException e) {

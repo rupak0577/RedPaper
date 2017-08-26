@@ -23,31 +23,19 @@ public class RemoteSource {
     private final String URL_RURAL = "https://www.reddit.com/r/RuralPorn/hot.json";
     private final String URL_ABANDONED = "https://www.reddit.com/r/AbandonedPorn/hot.json";
 
-    private List<Post> earthPosts = null;
-    private List<Post> roadPosts = null;
-    private List<Post> ruralPosts = null;
-    private List<Post> abandonedPosts = null;
     private AsyncHttpClient client;
-    private SubPresenter mSubPresenter;
     private static RemoteSource mRemoteSource;
 
-    private RemoteSource(SubPresenter presenter) {
-        this.mSubPresenter = presenter;
+    private RemoteSource() {}
 
-        earthPosts = new ArrayList<>();
-        roadPosts = new ArrayList<>();
-        ruralPosts = new ArrayList<>();
-        abandonedPosts = new ArrayList<>();
-    }
-
-    public static RemoteSource getRemoteSource(SubPresenter presenter) {
+    public static RemoteSource getRemoteSource() {
         if (mRemoteSource == null)
-            mRemoteSource = new RemoteSource(presenter);
+            mRemoteSource = new RemoteSource();
 
         return mRemoteSource;
     }
 
-    public void requestPosts(final int page) {
+    public void requestPosts(final int page, final SubPresenter presenter) {
         client = new AsyncHttpClient();
         client.setTimeout(3000);
         String URL = "";
@@ -73,24 +61,7 @@ public class RemoteSource {
                 try {
                     jsonData = response.getJSONObject("data");
 
-                    switch (page) {
-                        case 0:
-                            earthPosts = Post.fromJson(jsonData);
-                            mSubPresenter.notifyPostsLoaded(earthPosts);
-                            break;
-                        case 1:
-                            ruralPosts = Post.fromJson(jsonData);
-                            mSubPresenter.notifyPostsLoaded(ruralPosts);
-                            break;
-                        case 2:
-                            roadPosts = Post.fromJson(jsonData);
-                            mSubPresenter.notifyPostsLoaded(roadPosts);
-                            break;
-                        case 3:
-                            abandonedPosts = Post.fromJson(jsonData);
-                            mSubPresenter.notifyPostsLoaded(abandonedPosts);
-                            break;
-                    }
+                    presenter.notifyLoadSuccess(Post.fromJson(jsonData));
                 } catch (JSONException e) {
                     Log.e(TAG, "Error in parsing JSON. Initializing <posts> to empty");
                 }
@@ -101,7 +72,7 @@ public class RemoteSource {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
                 Log.d(TAG, "Failed to fetch data. <posts> is set to null");
 
-                mSubPresenter.notifyLoadFailure(statusCode);
+                presenter.notifyLoadFailure(statusCode);
             }
         });
     }
@@ -109,20 +80,5 @@ public class RemoteSource {
     public void cancel() {
         if (client != null)
             client.cancelAllRequests(true);
-    }
-
-    public List<Post> getPosts(int page) {
-        switch (page) {
-            case 0:
-                return earthPosts;
-            case 1:
-                return roadPosts;
-            case 2:
-                return ruralPosts;
-            case 3:
-                return abandonedPosts;
-        }
-
-        return new ArrayList<>();
     }
 }

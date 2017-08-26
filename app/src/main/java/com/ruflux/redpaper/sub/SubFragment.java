@@ -55,8 +55,8 @@ public class SubFragment extends Fragment implements SubContract.View {
 
     @Override
     public void onStop() {
-        super.onStop();
         mPresenter.stop();
+        super.onStop();
     }
 
     @Override
@@ -89,7 +89,7 @@ public class SubFragment extends Fragment implements SubContract.View {
 
     @Override
     public void startLoadProgress() {
-        mBinding.shimmerFragmentSub.startShimmerAnimation();
+        //mBinding.shimmerFragmentSub.startShimmerAnimation();
 
         mBinding.progressFragmentTab.setVisibility(View.VISIBLE);
         mBinding.progressFragmentTab.setIndeterminate(true);
@@ -97,7 +97,7 @@ public class SubFragment extends Fragment implements SubContract.View {
 
     @Override
     public void stopLoadProgress() {
-        mBinding.shimmerFragmentSub.stopShimmerAnimation();
+        //mBinding.shimmerFragmentSub.stopShimmerAnimation();
 
         if (mBinding.swipeFragment.isRefreshing())
             mBinding.swipeFragment.setRefreshing(false);
@@ -106,7 +106,7 @@ public class SubFragment extends Fragment implements SubContract.View {
     }
 
     @Override
-    public void setPresenter(SubContract.Presenter presenter) {
+    public void attachPresenter(SubContract.Presenter presenter) {
         mPresenter = presenter;
     }
 

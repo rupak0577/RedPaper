@@ -1,11 +1,11 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/rel_fragment_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:orientation="vertical"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         tools:context="com.ruflux.redpaper.MainActivity$SubRedditFragment">
@@ -19,22 +19,30 @@
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipe_fragment"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="16dp">
+            android:layout_height="wrap_content">
 
-            <com.facebook.shimmer.ShimmerFrameLayout
-                android:id="@+id/shimmer_fragment_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/recycler_fragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true" />
-            </com.facebook.shimmer.ShimmerFrameLayout>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
         </android.support.v4.widget.SwipeRefreshLayout>
 
-    </RelativeLayout>
+        <!--<com.facebook.shimmer.ShimmerFrameLayout-->
+            <!--android:id="@+id/shimmer_fragment_sub"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content">-->
+
+            <!--<TextView-->
+                <!--android:id="@+id/text_empty_placeholder"-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:text="Fetching posts..."-->
+                <!--android:textAlignment="center"/>-->
+
+        <!--</com.facebook.shimmer.ShimmerFrameLayout>-->
+
+    </LinearLayout>
 </layout>
