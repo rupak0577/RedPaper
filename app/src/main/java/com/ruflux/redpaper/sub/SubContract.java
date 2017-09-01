@@ -8,19 +8,13 @@ import java.util.List;
 interface SubContract {
 
     interface Presenter extends Mvp.BasePresenter {
-        void loadPosts();
-
-        void notifyLoadSuccess(List<Post> posts);
-
-        void notifyLoadFailure(int statusCode);
+        void loadPosts(boolean refresh);
 
         void attachTo(View view);
     }
 
     interface View extends Mvp.BaseView<Presenter> {
         void showPosts(List<Post> posts);
-
-        int getPage();
 
         void startLoadProgress();
 

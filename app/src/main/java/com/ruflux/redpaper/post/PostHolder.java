@@ -1,7 +1,5 @@
 package com.ruflux.redpaper.post;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.RecyclerView;
@@ -10,17 +8,15 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.ruflux.redpaper.R;
+import com.ruflux.redpaper.data.Downloader;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.databinding.FragmentCardBinding;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
-public class PostHolder extends RecyclerView.ViewHolder implements
-        PostContract.View {
+public class PostHolder extends RecyclerView.ViewHolder {
 
     private final FragmentCardBinding mBinding;
     private Post mItem;
-    private PostContract.Presenter mPresenter;
 
     public PostHolder(FragmentCardBinding binding) {
         super(binding.getRoot());
@@ -33,7 +29,10 @@ public class PostHolder extends RecyclerView.ViewHolder implements
 
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
         mBinding.textCardItemDomain.setText(mItem.getDomain());
-        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).fit().
+        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).
+                fit().centerCrop().noFade().
+                placeholder(R.drawable.ic_photo_white_24dp).
+                error(R.drawable.ic_broken_image_white_24dp).
                 into(mBinding.imageCardItemThumb);
 
         // Workaround for issue with FAB
@@ -50,29 +49,9 @@ public class PostHolder extends RecyclerView.ViewHolder implements
                     Toast.makeText(v.getContext(), "Flickr links cannot be saved on mobile",
                             Toast.LENGTH_LONG).show();
                 else {
-                    mPresenter.downloadPost(item.getUrl());
+                    //Downloader.downloadPost(v.getContext(), item.getUrl(), item.getFileName());
                 }
             }
         });
-    }
-
-    @Override
-    public void attachPresenter(@NonNull PostContract.Presenter presenter) {
-        mPresenter = presenter;
-    }
-
-    @Override
-    public Context getActivityContext() {
-        return mBinding.getRoot().getContext();
-    }
-
-    @Override
-    public void showDownloadProgress() {
-
-    }
-
-    @Override
-    public void markDownloaded() {
-
     }
 }

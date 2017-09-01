@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.ruflux.redpaper.data.BaseRepository;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.sub.SubPresenter;
 
@@ -24,18 +25,8 @@ public class RemoteSource {
     private final String URL_ABANDONED = "https://www.reddit.com/r/AbandonedPorn/hot.json";
 
     private AsyncHttpClient client;
-    private static RemoteSource mRemoteSource;
 
-    private RemoteSource() {}
-
-    public static RemoteSource getRemoteSource() {
-        if (mRemoteSource == null)
-            mRemoteSource = new RemoteSource();
-
-        return mRemoteSource;
-    }
-
-    public void requestPosts(final int page, final SubPresenter presenter) {
+    public void requestPosts(int page, final BaseRepository.LoadPostsCallback callback) {
         client = new AsyncHttpClient();
         client.setTimeout(3000);
         String URL = "";
@@ -61,18 +52,18 @@ public class RemoteSource {
                 try {
                     jsonData = response.getJSONObject("data");
 
-                    presenter.notifyLoadSuccess(Post.fromJson(jsonData));
+                    callback.success(Post.fromJson(jsonData));
                 } catch (JSONException e) {
-                    Log.e(TAG, "Error in parsing JSON. Initializing <posts> to empty");
+                    Log.e(TAG, "Error in parsing JSON : " + e.getCause());
                 }
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
-                Log.d(TAG, "Failed to fetch data. <posts> is set to null");
+                Log.d(TAG, "Failed to fetch data. STATUS CODE : " + statusCode);
 
-                presenter.notifyLoadFailure(statusCode);
+                callback.failure(statusCode);
             }
         });
     }

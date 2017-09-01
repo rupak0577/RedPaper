@@ -4,10 +4,6 @@ import android.content.Context;
 
 public interface Mvp {
 
-    interface BaseModel {
-
-    }
-
     interface BaseView<T> {
         void attachPresenter(T presenter);
 

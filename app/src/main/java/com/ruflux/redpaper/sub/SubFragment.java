@@ -23,22 +23,9 @@ import java.util.List;
 
 public class SubFragment extends Fragment implements SubContract.View {
 
-    private static final String ARG_PAGE_NUMBER = "page_number";
-
     private SubContract.Presenter mPresenter;
     private FragmentSubBinding mBinding;
     private SubAdapter mAdapter;
-
-    public SubFragment() {
-    }
-
-    public static SubFragment newInstance(int pageNumber) {
-        SubFragment fragment = new SubFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_PAGE_NUMBER, pageNumber);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,7 +56,7 @@ public class SubFragment extends Fragment implements SubContract.View {
         mBinding.swipeFragment.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mPresenter.loadPosts();
+                mPresenter.loadPosts(true);
             }
         });
 
@@ -83,22 +70,13 @@ public class SubFragment extends Fragment implements SubContract.View {
     }
 
     @Override
-    public int getPage() {
-        return getArguments().getInt(ARG_PAGE_NUMBER);
-    }
-
-    @Override
     public void startLoadProgress() {
-        //mBinding.shimmerFragmentSub.startShimmerAnimation();
-
         mBinding.progressFragmentTab.setVisibility(View.VISIBLE);
         mBinding.progressFragmentTab.setIndeterminate(true);
     }
 
     @Override
     public void stopLoadProgress() {
-        //mBinding.shimmerFragmentSub.stopShimmerAnimation();
-
         if (mBinding.swipeFragment.isRefreshing())
             mBinding.swipeFragment.setRefreshing(false);
         mBinding.progressFragmentTab.setIndeterminate(false);
