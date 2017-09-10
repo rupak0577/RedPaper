@@ -38,18 +38,20 @@ public class Repository implements BaseRepository {
     public void getPosts(final int contentPage, final LoadPostsCallback callback) {
         if (mCacheIsDirty || mCachedPosts.get(contentPage) == null) {
             Log.d(TAG, "Loading PAGE: " + contentPage + " from REMOTE");
+            mCacheIsDirty = false;
             mRemoteSource.requestPosts(contentPage, new LoadPostsCallback() {
                 @Override
                 public void success(List<Post> posts) {
-                    mCacheIsDirty = false;
                     mCachedPosts.put(contentPage, posts);
                     callback.success(posts);
                 }
 
                 @Override
                 public void failure(int statusCode) {
-                    mCacheIsDirty = false;
-                    callback.failure(statusCode);
+                    if (mCachedPosts.get(contentPage) != null)
+                        callback.success(mCachedPosts.get(contentPage));
+                    else
+                        callback.failure(statusCode);
                 }
             });
         } else {

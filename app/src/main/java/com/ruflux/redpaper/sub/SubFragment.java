@@ -66,7 +66,6 @@ public class SubFragment extends Fragment implements SubContract.View {
     @Override
     public void showPosts(List<Post> posts) {
         mAdapter.setItems(posts);
-        mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -123,7 +122,7 @@ public class SubFragment extends Fragment implements SubContract.View {
 
         public void setItems(List<Post> posts) {
             this.mPosts.clear();
-            this.mPosts = posts;
+            this.mPosts.addAll(posts);
             notifyDataSetChanged();
         }
     }

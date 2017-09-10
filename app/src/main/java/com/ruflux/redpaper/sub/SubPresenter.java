@@ -15,38 +15,38 @@ public class SubPresenter implements SubContract.Presenter {
     private Repository mRepository;
 
     private int contentPage;
+    private boolean isConnected;
 
-    public SubPresenter() {
+    public SubPresenter(SubFragment subFragment) {
+        mView = new WeakReference<SubContract.View>(subFragment);
+        mView.get().attachPresenter(this);
         mRepository = Repository.getInstance();
     }
 
     @Override
     public void loadPosts(boolean refresh) {
-        mView.get().startLoadProgress();
+        final SubContract.View fragment = mView.get();
+        if (fragment != null) {
+            fragment.startLoadProgress();
 
-        if (refresh)
-            mRepository.refreshPosts();
-        mRepository.getPosts(contentPage, new BaseRepository.LoadPostsCallback() {
+            if (refresh && isConnected)
+                mRepository.refreshPosts();
+            mRepository.getPosts(contentPage, new BaseRepository.LoadPostsCallback() {
 
-            @Override
-            public void success(List<Post> posts) {
-                mView.get().stopLoadProgress();
-                mView.get().showPosts(posts);
-            }
+                @Override
+                public void success(List<Post> posts) {
+                    fragment.stopLoadProgress();
+                    fragment.showPosts(posts);
+                }
 
-            @Override
-            public void failure(int statusCode) {
-                mView.get().stopLoadProgress();
-                Toast.makeText(mView.get().getActivityContext(), "Error " + statusCode, Toast.LENGTH_SHORT)
-                        .show();
-            }
-        });
-    }
-
-    @Override
-    public void attachTo(SubContract.View view) {
-        mView = new WeakReference<>(view);
-        mView.get().attachPresenter(this);
+                @Override
+                public void failure(int statusCode) {
+                    fragment.stopLoadProgress();
+                    Toast.makeText(fragment.getActivityContext(), "Error " + statusCode, Toast.LENGTH_SHORT)
+                            .show();
+                }
+            });
+        }
     }
 
     @Override
@@ -63,7 +63,16 @@ public class SubPresenter implements SubContract.Presenter {
         return !mRepository.isPageCached(contentPage);
     }
 
-    public void setContentPage(int page) {
+    public void loadPage(int page) {
         this.contentPage = page;
+        stop();
+        loadPosts(isFirstTime());
+    }
+
+    public void isConnected(boolean value) {
+        this.isConnected = value;
+
+        if (!value)
+            mRepository.cancel();
     }
 }

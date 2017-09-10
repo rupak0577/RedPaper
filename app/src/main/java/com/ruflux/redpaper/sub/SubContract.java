@@ -9,8 +9,6 @@ interface SubContract {
 
     interface Presenter extends Mvp.BasePresenter {
         void loadPosts(boolean refresh);
-
-        void attachTo(View view);
     }
 
     interface View extends Mvp.BaseView<Presenter> {

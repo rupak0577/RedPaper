@@ -1,6 +1,9 @@
 package com.ruflux.redpaper;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
@@ -11,13 +14,10 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.ruflux.redpaper.databinding.ActivityMainBinding;
@@ -30,8 +30,11 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mBinding;
 
-    private SparseArray<SubFragment> fragmentList;
+    private SubFragment mFragment;
     private SubPresenter mPresenter;
+    private int page;
+    private ConnectionReceiver mReceiver;
+    private Snackbar noConn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,24 +45,64 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
 
-        fragmentList = new SparseArray<>();
-
-        mBinding.navViewRoot.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        hideInfoText();
-                        selectDrawerItem(item);
-                        return false;
-                    }
-                }
-        );
+        mFragment = new SubFragment();
+        getSupportFragmentManager().beginTransaction().add(mBinding.frameContentRoot.getId(), mFragment)
+                .commit();
+        mPresenter = new SubPresenter(mFragment);
 
         if(!checkPermission()) {
             requestPermission();
         }
 
-        checkConnection();
+        noConn = Snackbar.make(mBinding.frameContentRoot, "Cannot connect to the Internet",
+                Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
+
+        boolean connection = checkConnection();
+        if (!connection) {
+            noConn.show();
+            mPresenter.isConnected(false);
+        }
+
+        if (savedInstanceState != null) {
+            mPresenter.loadPage(savedInstanceState.getInt("PAGE"));
+            int itemId = mBinding.navViewRoot.getMenu()
+                    .getItem(savedInstanceState.getInt("PAGE")).getItemId();
+            mBinding.navViewRoot.setCheckedItem(itemId);
+            setTitle(itemId);
+        } else
+            setTitle(mBinding.navViewRoot.getMenu().getItem(0).getTitle());
+
+        mBinding.navViewRoot.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        selectDrawerItem(item);
+                        return false;
+                    }
+                }
+        );
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        mReceiver = new ConnectionReceiver();
+        registerReceiver(mReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(mReceiver);
+        super.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt("PAGE", page);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -87,69 +130,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void selectDrawerItem(MenuItem item) {
-        int pos;
-
         switch (item.getItemId()) {
             case R.id.drawer_item_0:
-                pos = 0;
+                page = 0;
                 break;
             case R.id.drawer_item_1:
-                pos = 1;
+                page = 1;
                 break;
             case R.id.drawer_item_2:
-                pos = 2;
+                page = 2;
                 break;
             case R.id.drawer_item_3:
-                pos = 3;
+                page = 3;
                 break;
             default:
-                pos = 0;
+                page = 0;
         }
 
-        selectFragment(pos);
+        mPresenter.loadPage(page);
 
-        item.setChecked(true);
         setTitle(item.getTitle());
-
+        mBinding.navViewRoot.setCheckedItem(item.getItemId());
         mBinding.drawerRoot.closeDrawers();
     }
 
-    private void selectFragment(int position) {
-        SubFragment fragment;
-
-        if (fragmentList.get(position) == null) {
-            fragment = new SubFragment();
-            fragmentList.append(position, fragment);
-
-            if (mPresenter == null)
-                mPresenter = new SubPresenter();
-        } else {
-            fragment = fragmentList.get(position);
-        }
-
-        mPresenter.setContentPage(position);
-        mPresenter.attachTo(fragment);
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(mBinding.frameContentRoot.getId(), fragment).
-                commit();
-    }
-
-    public void checkConnection() {
+    public boolean checkConnection() {
         ConnectivityManager cm =
                 (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (!(activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting())) {
-            Snackbar.make(mBinding.frameContentRoot, "Cannot connect to the Internet",
-                    Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW).show();
-        }
-    }
-
-    private void hideInfoText() {
-        if (mBinding.textInfo.getVisibility() == View.VISIBLE)
-            mBinding.textInfo.setVisibility(View.GONE);
+        return (activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting());
     }
 
     private boolean checkPermission() {
@@ -160,5 +171,17 @@ public class MainActivity extends AppCompatActivity {
     private void requestPermission() {
         ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
                 PERMISSION_REQUEST_CODE);
+    }
+
+    private class ConnectionReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean val = checkConnection();
+            mPresenter.isConnected(val);
+            if (!val)
+                noConn.show();
+            else
+                noConn.dismiss();
+        }
     }
 }
