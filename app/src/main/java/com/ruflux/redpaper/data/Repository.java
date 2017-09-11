@@ -20,6 +20,7 @@ public class Repository implements BaseRepository {
 
     private boolean mCacheIsDirty = false;
     private HashMap<Integer,List<Post>> mCachedPosts;
+    private boolean isConnected;
 
     private Repository() {
         mRemoteSource = new RemoteSource();
@@ -36,9 +37,14 @@ public class Repository implements BaseRepository {
 
     @Override
     public void getPosts(final int contentPage, final LoadPostsCallback callback) {
-        if (mCacheIsDirty || mCachedPosts.get(contentPage) == null) {
+        if (isPageCached(contentPage) && !mCacheIsDirty) {
+            callback.success(mCachedPosts.get(contentPage));
+            return;
+        }
+
+        mCacheIsDirty = false;
+        if (isConnected) {
             Log.d(TAG, "Loading PAGE: " + contentPage + " from REMOTE");
-            mCacheIsDirty = false;
             mRemoteSource.requestPosts(contentPage, new LoadPostsCallback() {
                 @Override
                 public void success(List<Post> posts) {
@@ -48,15 +54,14 @@ public class Repository implements BaseRepository {
 
                 @Override
                 public void failure(int statusCode) {
-                    if (mCachedPosts.get(contentPage) != null)
+                    if (isPageCached(contentPage))
                         callback.success(mCachedPosts.get(contentPage));
                     else
                         callback.failure(statusCode);
                 }
             });
         } else {
-            Log.d(TAG, "Loading PAGE: " + contentPage + " from CACHE");
-            callback.success(mCachedPosts.get(contentPage));
+            callback.failure(0);
         }
     }
 
@@ -75,7 +80,11 @@ public class Repository implements BaseRepository {
         mRemoteSource.cancel();
     }
 
-    public boolean isPageCached(int contentPage) {
+    public void isConnected(boolean value) {
+        this.isConnected = value;
+    }
+
+    private boolean isPageCached(int contentPage) {
         return mCachedPosts.containsKey(contentPage);
     }
 }

@@ -14,7 +14,6 @@ public class SubPresenter implements SubContract.Presenter {
     private Repository mRepository;
 
     private int contentPage;
-    private boolean isConnected;
 
     public SubPresenter(SubFragment subFragment) {
         mView = new WeakReference<SubContract.View>(subFragment);
@@ -28,7 +27,7 @@ public class SubPresenter implements SubContract.Presenter {
         if (fragment != null) {
             fragment.startLoadProgress();
 
-            if (refresh && isConnected)
+            if (refresh)
                 mRepository.refreshPosts();
             mRepository.getPosts(contentPage, new BaseRepository.LoadPostsCallback() {
 
@@ -51,7 +50,7 @@ public class SubPresenter implements SubContract.Presenter {
 
     @Override
     public void start() {
-        loadPosts(isFirstTime());
+        loadPosts(false);
     }
 
     @Override
@@ -59,20 +58,11 @@ public class SubPresenter implements SubContract.Presenter {
         mRepository.cancel();
     }
 
-    private boolean isFirstTime() {
-        return !mRepository.isPageCached(contentPage);
-    }
-
-    public void loadPage(int page) {
-        this.contentPage = page;
-        stop();
-        loadPosts(isFirstTime());
+    public void setSub(int sub) {
+        this.contentPage = sub;
     }
 
     public void isConnected(boolean value) {
-        this.isConnected = value;
-
-        if (!value)
-            mRepository.cancel();
+        mRepository.isConnected(value);
     }
 }

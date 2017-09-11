@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     private SubFragment mFragment;
     private SubPresenter mPresenter;
-    private int page;
     private ConnectionReceiver mReceiver;
     private Snackbar noConn;
 
@@ -45,32 +44,27 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
 
-        mFragment = new SubFragment();
-        getSupportFragmentManager().beginTransaction().add(mBinding.frameContentRoot.getId(), mFragment)
-                .commit();
+        mFragment = (SubFragment) getSupportFragmentManager().findFragmentById(mBinding.frameContentRoot.getId());
+        if (mFragment == null) {
+            mFragment = new SubFragment();
+            getSupportFragmentManager().beginTransaction().add(mBinding.frameContentRoot.getId(), mFragment)
+                    .commit();
+        }
         mPresenter = new SubPresenter(mFragment);
 
         if(!checkPermission()) {
             requestPermission();
         }
 
-        noConn = Snackbar.make(mBinding.frameContentRoot, "Cannot connect to the Internet",
+        noConn = Snackbar.make(mBinding.frameContentRoot, "No Connection",
                 Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
 
         boolean connection = checkConnection();
         if (!connection) {
             noConn.show();
             mPresenter.isConnected(false);
-        }
-
-        if (savedInstanceState != null) {
-            mPresenter.loadPage(savedInstanceState.getInt("PAGE"));
-            int itemId = mBinding.navViewRoot.getMenu()
-                    .getItem(savedInstanceState.getInt("PAGE")).getItemId();
-            mBinding.navViewRoot.setCheckedItem(itemId);
-            setTitle(itemId);
         } else
-            setTitle(mBinding.navViewRoot.getMenu().getItem(0).getTitle());
+            mPresenter.isConnected(true);
 
         mBinding.navViewRoot.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -100,12 +94,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt("PAGE", page);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -130,24 +118,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void selectDrawerItem(MenuItem item) {
+        int sub;
         switch (item.getItemId()) {
             case R.id.drawer_item_0:
-                page = 0;
+                sub = 0;
                 break;
             case R.id.drawer_item_1:
-                page = 1;
+                sub = 1;
                 break;
             case R.id.drawer_item_2:
-                page = 2;
+                sub = 2;
                 break;
             case R.id.drawer_item_3:
-                page = 3;
+                sub = 3;
                 break;
             default:
-                page = 0;
+                sub = 0;
         }
 
-        mPresenter.loadPage(page);
+        mPresenter.setSub(sub);
+        getSupportFragmentManager().beginTransaction().detach(mFragment).attach(mFragment).commit();
 
         setTitle(item.getTitle());
         mBinding.navViewRoot.setCheckedItem(item.getItemId());

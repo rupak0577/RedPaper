@@ -1,6 +1,5 @@
 package com.ruflux.redpaper.sub;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -85,18 +84,13 @@ public class SubFragment extends Fragment implements SubContract.View {
 
     @Override
     public void showLoadError() {
-        Toast.makeText(getActivityContext(), "Could not fetch images list", Toast.LENGTH_SHORT)
+        Toast.makeText(getContext(), "Could not fetch images list", Toast.LENGTH_SHORT)
                 .show();
     }
 
     @Override
     public void attachPresenter(SubContract.Presenter presenter) {
         mPresenter = presenter;
-    }
-
-    @Override
-    public Context getActivityContext() {
-        return getContext();
     }
 
     private static class SubAdapter extends RecyclerView.Adapter<PostHolder> {
