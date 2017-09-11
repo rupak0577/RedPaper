@@ -55,7 +55,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="2dp"
-                    android:background="@color/colorAccent"/>
+                    android:background="@android:color/holo_orange_light"/>
 
                 <TextView
                     android:id="@+id/text_card_item_domain"
