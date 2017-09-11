@@ -1,12 +1,11 @@
 package com.ruflux.redpaper.sub;
 
-import android.widget.Toast;
-
 import com.ruflux.redpaper.data.BaseRepository;
 import com.ruflux.redpaper.data.Repository;
 import com.ruflux.redpaper.data.model.Post;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SubPresenter implements SubContract.Presenter {
@@ -42,8 +41,9 @@ public class SubPresenter implements SubContract.Presenter {
                 @Override
                 public void failure(int statusCode) {
                     fragment.stopLoadProgress();
-                    Toast.makeText(fragment.getActivityContext(), "Error " + statusCode, Toast.LENGTH_SHORT)
-                            .show();
+                    // Init with empty data as we couldn't fetch either from remote or cache
+                    fragment.showPosts(new ArrayList<Post>());
+                    fragment.showLoadError();
                 }
             });
         }

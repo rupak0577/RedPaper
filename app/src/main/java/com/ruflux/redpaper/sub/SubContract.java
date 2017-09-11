@@ -17,5 +17,7 @@ interface SubContract {
         void startLoadProgress();
 
         void stopLoadProgress();
+
+        void showLoadError();
     }
 }

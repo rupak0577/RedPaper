@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.ruflux.redpaper.R;
 import com.ruflux.redpaper.data.model.Post;
@@ -83,6 +84,12 @@ public class SubFragment extends Fragment implements SubContract.View {
     }
 
     @Override
+    public void showLoadError() {
+        Toast.makeText(getActivityContext(), "Could not fetch images list", Toast.LENGTH_SHORT)
+                .show();
+    }
+
+    @Override
     public void attachPresenter(SubContract.Presenter presenter) {
         mPresenter = presenter;
     }
@@ -112,7 +119,7 @@ public class SubFragment extends Fragment implements SubContract.View {
         public void onBindViewHolder(final PostHolder holder, int position) {
             final Post post = mPosts.get(position);
 
-            holder.bindItem(post);
+            holder.bindItem(post, position);
         }
 
         @Override
@@ -120,7 +127,7 @@ public class SubFragment extends Fragment implements SubContract.View {
             return mPosts.size();
         }
 
-        public void setItems(List<Post> posts) {
+        void setItems(List<Post> posts) {
             this.mPosts.clear();
             this.mPosts.addAll(posts);
             notifyDataSetChanged();

@@ -13,6 +13,7 @@ public class Post {
     private String thumbnailUrl;
     private String id;
     private String domain;
+    private String fileName;
 
     public String getThumbnailUrl() {
         return thumbnailUrl;
@@ -34,9 +35,13 @@ public class Post {
         return title;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     public static ArrayList<Post> fromJson(JSONObject model) {
         ArrayList<Post> mModel = new ArrayList<>();
-        Post m = null;
+        Post m;
         try {
             JSONArray children = model.getJSONArray("children");
             for (int i = 0; i < children.length(); ++i) {
@@ -47,10 +52,17 @@ public class Post {
                         innerData.getString("domain").startsWith("s")) // domain = reddit/self, skip
                     continue;
                 m = new Post();
-                m.title = innerData.getString("title");
-                m.url = innerData.getString("url");
                 m.id = innerData.getString("id");
+                m.title = innerData.getString("title");
                 m.domain = innerData.getString("domain");
+                m.url = innerData.getString("url");
+
+                // https://imgur.com/xyz --> https://i.imgur.com/xyz.jpg
+                if (m.domain.equals("imgur.com")) {
+                    m.url = m.url.substring(0, m.url.indexOf("/") + 2) + "i."
+                            + m.url.substring(m.url.indexOf("i")) + ".jpeg";
+                }
+                m.fileName = m.url.substring(m.url.lastIndexOf("/") + 1);
 
                 JSONObject preview = innerData.getJSONObject("preview");
                 JSONArray images = preview.getJSONArray("images");

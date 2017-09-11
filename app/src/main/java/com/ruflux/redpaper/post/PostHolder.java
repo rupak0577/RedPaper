@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.ruflux.redpaper.R;
-import com.ruflux.redpaper.data.Downloader;
+import com.ruflux.redpaper.RedPaperApplication;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.databinding.FragmentCardBinding;
 import com.squareup.picasso.Picasso;
@@ -17,6 +17,7 @@ public class PostHolder extends RecyclerView.ViewHolder {
 
     private final FragmentCardBinding mBinding;
     private Post mItem;
+    private long downloadManRefId;
 
     public PostHolder(FragmentCardBinding binding) {
         super(binding.getRoot());
@@ -24,9 +25,10 @@ public class PostHolder extends RecyclerView.ViewHolder {
         mBinding = binding;
     }
 
-    public void bindItem(final Post item) {
+    public void bindItem(final Post item, final int position) {
         mItem = item;
 
+        mBinding.textPosition.setText(Integer.toString(position+1));
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
         mBinding.textCardItemDomain.setText(mItem.getDomain());
         Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).
@@ -45,11 +47,28 @@ public class PostHolder extends RecyclerView.ViewHolder {
         mBinding.fabCardItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mItem.getDomain().equals("flickr.com"))
-                    Toast.makeText(v.getContext(), "Flickr links cannot be saved on mobile",
-                            Toast.LENGTH_LONG).show();
-                else {
-                    //Downloader.downloadPost(v.getContext(), item.getUrl(), item.getFileName());
+                int status = ((RedPaperApplication) v.getContext().getApplicationContext())
+                        .getDownloader()
+                        .queryStatus(downloadManRefId);
+
+                switch (status) {
+                    case 0:
+                        if (mItem.getDomain().equals("flickr.com"))
+                            Toast.makeText(v.getContext(), "Flickr links cannot be downloaded on mobile",
+                                    Toast.LENGTH_LONG).show();
+                        else {
+                            Toast.makeText(v.getContext(), "Downloading image #" + (position + 1),
+                                    Toast.LENGTH_SHORT).show();
+
+                            downloadManRefId = ((RedPaperApplication) v.getContext()
+                                    .getApplicationContext()).getDownloader()
+                                    .downloadImage(item.getUrl(), item.getFileName());
+                        }
+                        break;
+                    case 1:
+                        Toast.makeText(v.getContext(), "Download already in progress",
+                                Toast.LENGTH_SHORT).show();
+                        break;
                 }
             }
         });
