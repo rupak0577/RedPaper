@@ -1,51 +1,71 @@
 package com.ruflux.redpaper.sub;
 
-import com.ruflux.redpaper.data.BaseRepository;
 import com.ruflux.redpaper.data.Repository;
 import com.ruflux.redpaper.data.model.Post;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class SubPresenter implements SubContract.Presenter {
 
     private WeakReference<SubContract.View> mView;
     private Repository mRepository;
+    private CompositeDisposable mDisposable;
 
     private int contentPage;
+    private String SUB;
 
     public SubPresenter(SubFragment subFragment) {
         mView = new WeakReference<SubContract.View>(subFragment);
         mView.get().attachPresenter(this);
         mRepository = Repository.getInstance();
+        mDisposable = new CompositeDisposable();
     }
 
     @Override
     public void loadPosts(boolean refresh) {
-        final SubContract.View fragment = mView.get();
-        if (fragment != null) {
-            fragment.startLoadProgress();
-
-            if (refresh)
-                mRepository.refreshPosts();
-            mRepository.getPosts(contentPage, new BaseRepository.LoadPostsCallback() {
-
-                @Override
-                public void success(List<Post> posts) {
-                    fragment.stopLoadProgress();
-                    fragment.showPosts(posts);
-                }
-
-                @Override
-                public void failure(int statusCode) {
-                    fragment.stopLoadProgress();
-                    // Init with empty data as we couldn't fetch either from remote or cache
-                    fragment.showPosts(new ArrayList<Post>());
-                    fragment.showLoadError();
-                }
-            });
+        switch (contentPage) {
+            case 0:
+                SUB = "EarthPorn";
+                break;
+            case 1:
+                SUB = "RoadPorn";
+                break;
+            case 2:
+                SUB = "RuralPorn";
+                break;
+            case 3:
+                SUB = "AbandonedPorn";
         }
+        mView.get().startLoadProgress();
+        mDisposable.add(mRepository.getPosts(SUB)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if (mView.get() != null) {
+                            mView.get().stopLoadProgress();
+                            mView.get().showPosts(Collections.<Post>emptyList());
+                            mView.get().showLoadError();
+                        }
+                    }
+                })
+                .subscribe(new Consumer<List<Post>>() {
+                    @Override
+                    public void accept(List<Post> posts) throws Exception {
+                        if (mView.get() != null) {
+                            mView.get().stopLoadProgress();
+                            mView.get().showPosts(posts);
+                        }
+                    }
+                }));
     }
 
     @Override
@@ -55,7 +75,7 @@ public class SubPresenter implements SubContract.Presenter {
 
     @Override
     public void stop() {
-        mRepository.cancel();
+        mDisposable.clear();
     }
 
     public void setSub(int sub) {

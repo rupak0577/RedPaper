@@ -1,31 +1,33 @@
 package com.ruflux.redpaper.data;
 
-
-import android.util.Log;
-
 import com.ruflux.redpaper.data.local.LocalSource;
 import com.ruflux.redpaper.data.model.Post;
+import com.ruflux.redpaper.data.model.SubData;
 import com.ruflux.redpaper.data.remote.RemoteSource;
 
 import java.util.HashMap;
 import java.util.List;
 
-public class Repository implements BaseRepository {
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
-    private String TAG = "REPOSITORY";
+public class Repository implements BaseRepository {
 
     private static Repository INSTANCE = null;
     private final RemoteSource mRemoteSource;
     private final LocalSource mLocalSource;
+    private CompositeDisposable mDisposable;
 
     private boolean mCacheIsDirty = false;
-    private HashMap<Integer,List<Post>> mCachedPosts;
+    private HashMap<String,List<SubData>> mCachedPosts;
     private boolean isConnected;
 
     private Repository() {
         mRemoteSource = new RemoteSource();
         mLocalSource = new LocalSource();
         mCachedPosts = new HashMap<>();
+        mDisposable = new CompositeDisposable();
     }
 
     public static Repository getInstance() {
@@ -36,38 +38,10 @@ public class Repository implements BaseRepository {
     }
 
     @Override
-    public void getPosts(final int contentPage, final LoadPostsCallback callback) {
-        if (isPageCached(contentPage) && !mCacheIsDirty) {
-            callback.success(mCachedPosts.get(contentPage));
-            return;
-        }
-
-        mCacheIsDirty = false;
-        if (isConnected) {
-            Log.d(TAG, "Loading PAGE: " + contentPage + " from REMOTE");
-            mRemoteSource.requestPosts(contentPage, new LoadPostsCallback() {
-                @Override
-                public void success(List<Post> posts) {
-                    mCachedPosts.put(contentPage, posts);
-                    callback.success(posts);
-                }
-
-                @Override
-                public void failure(int statusCode) {
-                    if (isPageCached(contentPage))
-                        callback.success(mCachedPosts.get(contentPage));
-                    else
-                        callback.failure(statusCode);
-                }
-            });
-        } else {
-            callback.failure(0);
-        }
-    }
-
-    @Override
-    public void getPost() {
-
+    public Observable<List<Post>> getPosts(final String sub) {
+        return mRemoteSource.requestPosts(sub)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io());
     }
 
     @Override
@@ -77,14 +51,13 @@ public class Repository implements BaseRepository {
 
     @Override
     public void cancel() {
-        mRemoteSource.cancel();
     }
 
     public void isConnected(boolean value) {
         this.isConnected = value;
     }
 
-    private boolean isPageCached(int contentPage) {
-        return mCachedPosts.containsKey(contentPage);
+    private boolean isPageCached(String sub) {
+        return mCachedPosts.containsKey(sub);
     }
 }

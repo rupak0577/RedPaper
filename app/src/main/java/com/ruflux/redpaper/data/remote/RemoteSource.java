@@ -1,75 +1,70 @@
 package com.ruflux.redpaper.data.remote;
 
-import android.util.Log;
-
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.ruflux.redpaper.data.BaseRepository;
 import com.ruflux.redpaper.data.model.Post;
-import com.ruflux.redpaper.sub.SubPresenter;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.ruflux.redpaper.data.model.SubData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.msebera.android.httpclient.Header;
+import io.reactivex.Observable;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class RemoteSource {
 
-    private final String TAG = "REMOTE_SOURCE";
-    private final String URL_EARTH = "https://www.reddit.com/r/EarthPorn/hot.json";
-    private final String URL_ROAD = "https://www.reddit.com/r/RoadPorn/hot.json";
-    private final String URL_RURAL = "https://www.reddit.com/r/RuralPorn/hot.json";
-    private final String URL_ABANDONED = "https://www.reddit.com/r/AbandonedPorn/hot.json";
+    private final String BASE_URL = "https://www.reddit.com/r/";
 
-    private AsyncHttpClient client;
+    private RedditClient client;
 
-    public void requestPosts(int page, final BaseRepository.LoadPostsCallback callback) {
-        client = new AsyncHttpClient();
-        client.setTimeout(3000);
-        String URL = "";
-        switch (page) {
-            case 0:
-                URL = URL_EARTH;
-                break;
-            case 1:
-                URL = URL_ROAD;
-                break;
-            case 2:
-                URL = URL_RURAL;
-                break;
-            case 3:
-                URL = URL_ABANDONED;
-        }
-        client.get(URL, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
+    public RemoteSource() {
+        Retrofit.Builder builder = new Retrofit.Builder().baseUrl(BASE_URL)
+                .addConverterFactory(MoshiConverterFactory.create());
+        Retrofit retrofit = builder.client(new OkHttpClient.Builder().build())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
 
-                JSONObject jsonData;
-                try {
-                    jsonData = response.getJSONObject("data");
-
-                    callback.success(Post.fromJson(jsonData));
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error in parsing JSON : " + e.getCause());
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
-                Log.d(TAG, "Failed to fetch data. STATUS CODE : " + statusCode);
-
-                callback.failure(statusCode);
-            }
-        });
+        client = retrofit.create(RedditClient.class);
     }
 
-    public void cancel() {
-        if (client != null)
-            client.cancelAllRequests(true);
+    public Observable<List<Post>> requestPosts(final String sub) {
+        Observable<SubData> subData = client.postsFromSub(sub);
+        return subData.subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .map(new Function<SubData, List<Post>>() {
+                    @Override
+                    public List<Post> apply(@NonNull SubData subData) throws Exception {
+                        List<Post> posts = new ArrayList<Post>();
+                        Post post;
+
+                        for (SubData.Child item : subData.getData().getChildren()) {
+                            if (item.getData().getIsSelf() || item.getData().getDomain().equals("reddit.com"))
+                                continue;
+                            post = new Post();
+                            post.setDomain(item.getData().getDomain());
+                            post.setId(item.getData().getId());
+                            post.setTitle(item.getData().getTitle());
+                            post.setPreview(item.getData().getPreview());
+
+                            // https://imgur.com/xyz --> https://i.imgur.com/xyz.jpeg
+                            String url = item.getData().getUrl();
+                            if (post.getDomain().equals("imgur.com")) {
+                                post.setUrl(url.substring(0, url.indexOf("/") + 2) + "i."
+                                        + url.substring(url.indexOf("i")) + ".jpeg");
+                            } else
+                                post.setUrl(url);
+                            post.setFilename(post.getUrl().substring(post.getUrl()
+                                    .lastIndexOf("/") + 1));
+
+                            posts.add(post);
+                        }
+
+                        return posts;
+                    }
+                });
     }
 }

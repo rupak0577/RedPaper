@@ -4,17 +4,11 @@ import com.ruflux.redpaper.data.model.Post;
 
 import java.util.List;
 
+import io.reactivex.Observable;
+
 public interface BaseRepository {
 
-    interface LoadPostsCallback {
-        void success(List<Post> posts);
-
-        void failure(int statusCode);
-    }
-
-    void getPosts(int contentPage, LoadPostsCallback callback);
-
-    void getPost();
+    Observable<List<Post>> getPosts(String sub);
 
     void refreshPosts();
 

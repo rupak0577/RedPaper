@@ -1,82 +1,182 @@
 package com.ruflux.redpaper.data.model;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
+import java.util.List;
 
 public class Post {
-
-    private String title;
-    private String url;
-    private String thumbnailUrl;
-    private String id;
     private String domain;
-    private String fileName;
+    private String id;
+    private String title;
+    private Preview preview;
+    private String url;
+    private Boolean is_self;
 
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
+    // Custom field
+    private String filename;
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public String getUrl() {
-        return url;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public String getFileName() {
-        return fileName;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public static ArrayList<Post> fromJson(JSONObject model) {
-        ArrayList<Post> mModel = new ArrayList<>();
-        Post m;
-        try {
-            JSONArray children = model.getJSONArray("children");
-            for (int i = 0; i < children.length(); ++i) {
-                JSONObject child = children.getJSONObject(i);
-                JSONObject innerData = child.getJSONObject("data");
+    public Preview getPreview() {
+        return preview;
+    }
 
-                if (innerData.getString("domain").startsWith("r") ||
-                        innerData.getString("domain").startsWith("s")) // domain = reddit/self, skip
-                    continue;
-                m = new Post();
-                m.id = innerData.getString("id");
-                m.title = innerData.getString("title");
-                m.domain = innerData.getString("domain");
-                m.url = innerData.getString("url");
+    public void setPreview(Preview preview) {
+        this.preview = preview;
+    }
 
-                // https://imgur.com/xyz --> https://i.imgur.com/xyz.jpg
-                if (m.domain.equals("imgur.com")) {
-                    m.url = m.url.substring(0, m.url.indexOf("/") + 2) + "i."
-                            + m.url.substring(m.url.indexOf("i")) + ".jpeg";
-                }
-                m.fileName = m.url.substring(m.url.lastIndexOf("/") + 1);
+    public String getUrl() {
+        return url;
+    }
 
-                JSONObject preview = innerData.getJSONObject("preview");
-                JSONArray images = preview.getJSONArray("images");
-                JSONArray res = images.getJSONObject(0).getJSONArray("resolutions");
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-                JSONObject variant = res.getJSONObject(2); // The 3rd variant is the closest
-                m.thumbnailUrl = variant.getString("url").replaceAll("&amp;", "&");
-                mModel.add(m);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+    public Boolean getIsSelf() {
+        return is_self;
+    }
+
+    public void setIsSelf(Boolean is_self) {
+        this.is_self = is_self;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public static class Preview {
+        private List<Image> images = null;
+        private Boolean enabled;
+
+        public List<Image> getImages() {
+            return images;
         }
 
-        return mModel;
-    }
+        public void setImages(List<Image> images) {
+            this.images = images;
+        }
 
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public static class Image {
+            private Source source;
+            private List<Resolution> resolutions = null;
+            private String id;
+
+            public Source getSource() {
+                return source;
+            }
+
+            public void setSource(Source source) {
+                this.source = source;
+            }
+
+            public List<Resolution> getResolutions() {
+                return resolutions;
+            }
+
+            public void setResolutions(List<Resolution> resolutions) {
+                this.resolutions = resolutions;
+            }
+
+            public String getId() {
+                return id;
+            }
+
+            public void setId(String id) {
+                this.id = id;
+            }
+        }
+
+        public static class Resolution {
+            private String url;
+            private Integer width;
+            private Integer height;
+
+            public String getUrl() {
+                return url;
+            }
+
+            public void setUrl(String url) {
+                this.url = url;
+            }
+
+            public Integer getWidth() {
+                return width;
+            }
+
+            public void setWidth(Integer width) {
+                this.width = width;
+            }
+
+            public Integer getHeight() {
+                return height;
+            }
+
+            public void setHeight(Integer height) {
+                this.height = height;
+            }
+        }
+
+        public static class Source {
+            private String url;
+            private Integer width;
+            private Integer height;
+
+            public String getUrl() {
+                return url;
+            }
+
+            public void setUrl(String url) {
+                this.url = url;
+            }
+
+            public Integer getWidth() {
+                return width;
+            }
+
+            public void setWidth(Integer width) {
+                this.width = width;
+            }
+
+            public Integer getHeight() {
+                return height;
+            }
+
+            public void setHeight(Integer height) {
+                this.height = height;
+            }
+        }
+    }
 }

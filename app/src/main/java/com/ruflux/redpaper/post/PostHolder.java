@@ -15,6 +15,8 @@ import com.squareup.picasso.Picasso;
 
 public class PostHolder extends RecyclerView.ViewHolder {
 
+    private final int VARIANT = 2;
+
     private final FragmentCardBinding mBinding;
     private Post mItem;
     private long downloadManRefId;
@@ -31,8 +33,9 @@ public class PostHolder extends RecyclerView.ViewHolder {
         mBinding.textPosition.setText(Integer.toString(position+1));
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
         mBinding.textCardItemDomain.setText(mItem.getDomain());
-        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl()).
-                fit().centerCrop().noFade().
+        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getPreview().getImages()
+                .get(0).getResolutions().get(VARIANT).getUrl().replaceAll("&amp;", "&"))
+                .fit().centerCrop().noFade().
                 placeholder(R.drawable.ic_photo_white_24dp).
                 error(R.drawable.ic_broken_image_white_24dp).
                 into(mBinding.imageCardItemThumb);
@@ -62,7 +65,7 @@ public class PostHolder extends RecyclerView.ViewHolder {
 
                             downloadManRefId = ((RedPaperApplication) v.getContext()
                                     .getApplicationContext()).getDownloader()
-                                    .downloadImage(item.getUrl(), item.getFileName());
+                                    .downloadImage(item.getUrl(), item.getFilename());
                         }
                         break;
                     case 1:
