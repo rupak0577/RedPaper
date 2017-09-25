@@ -18,6 +18,6 @@ interface SubContract {
 
         void stopLoadProgress();
 
-        void showLoadError();
+        void showLoadError(String message);
     }
 }

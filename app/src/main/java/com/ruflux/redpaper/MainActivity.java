@@ -52,19 +52,12 @@ public class MainActivity extends AppCompatActivity {
         }
         mPresenter = new SubPresenter(mFragment);
 
-        if(!checkPermission()) {
-            requestPermission();
-        }
-
         noConn = Snackbar.make(mBinding.frameContentRoot, "No Connection",
                 Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
 
         boolean connection = checkConnection();
-        if (!connection) {
+        if (!connection)
             noConn.show();
-            mPresenter.isConnected(false);
-        } else
-            mPresenter.isConnected(true);
 
         mBinding.navViewRoot.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -153,12 +146,12 @@ public class MainActivity extends AppCompatActivity {
                 activeNetwork.isConnectedOrConnecting());
     }
 
-    private boolean checkPermission() {
+    public boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
         return (result == PackageManager.PERMISSION_GRANTED);
     }
 
-    private void requestPermission() {
+    public void requestPermission() {
         ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
                 PERMISSION_REQUEST_CODE);
     }
@@ -167,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean val = checkConnection();
-            mPresenter.isConnected(val);
             if (!val)
                 noConn.show();
             else

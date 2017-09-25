@@ -83,8 +83,8 @@ public class SubFragment extends Fragment implements SubContract.View {
     }
 
     @Override
-    public void showLoadError() {
-        Toast.makeText(getContext(), "Could not fetch images list", Toast.LENGTH_SHORT)
+    public void showLoadError(String message) {
+        Toast.makeText(getContext(), "Could not fetch images : " + message, Toast.LENGTH_SHORT)
                 .show();
     }
 
@@ -113,7 +113,7 @@ public class SubFragment extends Fragment implements SubContract.View {
         public void onBindViewHolder(final PostHolder holder, int position) {
             final Post post = mPosts.get(position);
 
-            holder.bindItem(post, position);
+            holder.bindItem(post);
         }
 
         @Override

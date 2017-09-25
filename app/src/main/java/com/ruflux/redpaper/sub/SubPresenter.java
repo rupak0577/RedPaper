@@ -43,26 +43,27 @@ public class SubPresenter implements SubContract.Presenter {
             case 3:
                 SUB = "AbandonedPorn";
         }
+        if (refresh)
+            mRepository.refreshPosts();
         mView.get().startLoadProgress();
         mDisposable.add(mRepository.getPosts(SUB)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        if (mView.get() != null) {
-                            mView.get().stopLoadProgress();
-                            mView.get().showPosts(Collections.<Post>emptyList());
-                            mView.get().showLoadError();
-                        }
-                    }
-                })
                 .subscribe(new Consumer<List<Post>>() {
                     @Override
                     public void accept(List<Post> posts) throws Exception {
                         if (mView.get() != null) {
                             mView.get().stopLoadProgress();
                             mView.get().showPosts(posts);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if (mView.get() != null) {
+                            mView.get().stopLoadProgress();
+                            mView.get().showPosts(Collections.<Post>emptyList());
+                            mView.get().showLoadError(throwable.getMessage());
                         }
                     }
                 }));
@@ -80,9 +81,5 @@ public class SubPresenter implements SubContract.Presenter {
 
     public void setSub(int sub) {
         this.contentPage = sub;
-    }
-
-    public void isConnected(boolean value) {
-        mRepository.isConnected(value);
     }
 }

@@ -11,6 +11,4 @@ public interface BaseRepository {
     Observable<List<Post>> getPosts(String sub);
 
     void refreshPosts();
-
-    void cancel();
 }
