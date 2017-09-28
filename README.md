@@ -2,6 +2,13 @@
 
 A Reddit Wallpaper App
 
+## Made with
+
+- MVP
+- Retrofit
+- Picasso
+- RxJava
+
 ## Screenshots
 
 <div style="display:flex;" >
