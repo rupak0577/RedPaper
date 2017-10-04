@@ -1,4 +1,4 @@
-package com.ruflux.redpaper.sub;
+package com.ruflux.redpaper;
 
 import com.ruflux.redpaper.data.Repository;
 import com.ruflux.redpaper.data.model.Post;
@@ -18,35 +18,18 @@ public class SubPresenter implements SubContract.Presenter {
     private Repository mRepository;
     private CompositeDisposable mDisposable;
 
-    private int contentPage;
-    private String SUB;
-
-    public SubPresenter(SubFragment subFragment) {
-        mView = new WeakReference<SubContract.View>(subFragment);
-        mView.get().attachPresenter(this);
+    public SubPresenter(SubContract.View view) {
+        mView = new WeakReference<SubContract.View>(view);
         mRepository = Repository.getInstance();
         mDisposable = new CompositeDisposable();
     }
 
     @Override
     public void loadPosts(boolean refresh) {
-        switch (contentPage) {
-            case 0:
-                SUB = "EarthPorn";
-                break;
-            case 1:
-                SUB = "RoadPorn";
-                break;
-            case 2:
-                SUB = "RuralPorn";
-                break;
-            case 3:
-                SUB = "AbandonedPorn";
-        }
         if (refresh)
             mRepository.refreshPosts();
         mView.get().startLoadProgress();
-        mDisposable.add(mRepository.getPosts(SUB)
+        mDisposable.add(mRepository.getPosts(mView.get().getSelectedSub())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List<Post>>() {
@@ -77,9 +60,5 @@ public class SubPresenter implements SubContract.Presenter {
     @Override
     public void stop() {
         mDisposable.clear();
-    }
-
-    public void setSub(int sub) {
-        this.contentPage = sub;
     }
 }

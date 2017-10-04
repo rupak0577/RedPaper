@@ -3,7 +3,9 @@ package com.ruflux.redpaper.mvp;
 public interface Mvp {
 
     interface BaseView<T> {
-        void attachPresenter(T presenter);
+        void bindPresenter();
+
+        void unbindPresenter();
     }
 
     interface BasePresenter {

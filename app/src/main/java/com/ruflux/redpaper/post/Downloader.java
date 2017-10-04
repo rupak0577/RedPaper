@@ -11,6 +11,7 @@ public class Downloader {
     private static Downloader INSTANCE;
 
     private DownloadManager mDownloadManager;
+    private boolean isConnected;
 
     private Downloader(Context context) {
         mDownloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -45,5 +46,13 @@ public class Downloader {
         } else {
             return 0;
         }
+    }
+
+    public void setConnection(boolean val) {
+        isConnected = val;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 }

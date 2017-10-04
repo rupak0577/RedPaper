@@ -50,9 +50,15 @@ public class PostHolder extends RecyclerView.ViewHolder {
             @Override
             public void onClick(View v) {
                 if (((MainActivity) v.getContext()).checkPermission()) {
-                    int status = ((RedPaperApplication) v.getContext().getApplicationContext())
-                            .getDownloader()
-                            .queryStatus(downloadManRefId);
+                    Downloader downloader = ((RedPaperApplication) v.getContext().getApplicationContext())
+                            .getDownloader();
+
+                    if (!downloader.isConnected()) {
+                        Toast.makeText(v.getContext(), "No connection",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    int status = downloader.queryStatus(downloadManRefId);
 
                     switch (status) {
                         case 0:

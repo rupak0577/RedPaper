@@ -22,10 +22,26 @@
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-            <FrameLayout
-                android:id="@+id/frame_content_root"
+            <ProgressBar
+                android:id="@+id/progress_fragment_tab"
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="wrap_content" />
+
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" >
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true" />
+            </android.support.v4.widget.SwipeRefreshLayout>
 
         </LinearLayout>
 

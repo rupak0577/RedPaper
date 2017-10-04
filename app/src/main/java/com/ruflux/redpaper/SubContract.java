@@ -1,4 +1,4 @@
-package com.ruflux.redpaper.sub;
+package com.ruflux.redpaper;
 
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.mvp.Mvp;
@@ -19,5 +19,7 @@ interface SubContract {
         void stopLoadProgress();
 
         void showLoadError(String message);
+
+        String getSelectedSub();
     }
 }
