@@ -137,6 +137,11 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
     }
 
     @Override
+    public Context fetchContext() {
+        return this;
+    }
+
+    @Override
     public void showPosts(List<Post> posts) {
         mAdapter.setItems(posts);
     }

@@ -1,0 +1,17 @@
+CREATE TABLE sub (
+    sub_name TEXT NOT NULL PRIMARY KEY
+);
+
+SelectSub:
+SELECT *
+FROM sub;
+
+InsertOrReplaceSub:
+INSERT OR REPLACE INTO sub VALUES (?);
+
+DeleteSub:
+DELETE FROM sub
+WHERE sub_name = ?;
+
+DeleteAllSubs:
+DELETE FROM sub;

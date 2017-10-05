@@ -31,8 +31,7 @@ public class PostHolder extends RecyclerView.ViewHolder {
 
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
         mBinding.textCardItemDomain.setText(mItem.getDomain());
-        mBinding.textCardItemRes.setText(mItem.getPreview().getImages().get(0).getSource()
-                .getWidth() + "x" + mItem.getPreview().getImages().get(0).getSource().getHeight());
+        mBinding.textCardItemRes.setText(mItem.getWidth() + "x" + mItem.getHeight());
         Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl())
                 .fit().centerCrop().noFade().
                 placeholder(R.drawable.ic_photo_white_24dp).

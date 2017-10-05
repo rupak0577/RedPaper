@@ -19,8 +19,8 @@ public class SubPresenter implements SubContract.Presenter {
     private CompositeDisposable mDisposable;
 
     public SubPresenter(SubContract.View view) {
-        mView = new WeakReference<SubContract.View>(view);
-        mRepository = Repository.getInstance();
+        mView = new WeakReference<>(view);
+        mRepository = Repository.getInstance(mView.get().fetchContext().getApplicationContext());
         mDisposable = new CompositeDisposable();
     }
 

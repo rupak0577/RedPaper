@@ -13,6 +13,8 @@ public class Post {
     // Custom field
     private String filename;
     private String thumbnailUrl;
+    private Long height;
+    private Long width;
 
     public String getDomain() {
         return domain;
@@ -76,6 +78,22 @@ public class Post {
 
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public Long getHeight() {
+        return height;
+    }
+
+    public void setHeight(Long height) {
+        this.height = height;
+    }
+
+    public Long getWidth() {
+        return width;
+    }
+
+    public void setWidth(Long width) {
+        this.width = width;
     }
 
     public static class Preview {
