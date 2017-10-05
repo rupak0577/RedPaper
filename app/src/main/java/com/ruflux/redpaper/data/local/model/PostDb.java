@@ -11,10 +11,11 @@ public abstract class PostDb implements PostModel {
         @Override
         public PostDb create(@NonNull String post_id, @NonNull String domain, @NonNull String title,
                              @NonNull String url, @Nullable Boolean is_self, @NonNull String filename,
-                             @NonNull String thumbnail_url, long height, long width,
+                             @NonNull String thumbnail_url, @NonNull String preview_url,
+                             long height, long width,
                              @NonNull String belongs_to_sub) {
             return new AutoValue_PostDb(post_id, domain, title, url, is_self, filename,
-                    thumbnail_url, height, width, belongs_to_sub);
+                    thumbnail_url, preview_url, height, width, belongs_to_sub);
         }
     };
 

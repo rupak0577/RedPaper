@@ -41,6 +41,7 @@ public class LocalSource {
                         p.setIsSelf(PostDb.MAPPER.map(cursor).is_self());
                         p.setFilename(PostDb.MAPPER.map(cursor).filename());
                         p.setThumbnailUrl(PostDb.MAPPER.map(cursor).thumbnail_url());
+                        p.setPreviewUrl(PostDb.MAPPER.map(cursor).preview_url());
                         p.setHeight(PostDb.MAPPER.map(cursor).height());
                         p.setWidth(PostDb.MAPPER.map(cursor).width());
 
@@ -62,7 +63,8 @@ public class LocalSource {
             for (Post post : posts) {
                 insertPostStatement.bind(post.getId(), post.getDomain(), post.getTitle(),
                         post.getUrl(), post.getIsSelf(), post.getFilename(),
-                        post.getThumbnailUrl(), post.getHeight(), post.getWidth(), sub);
+                        post.getThumbnailUrl(), post.getPreviewUrl(),
+                        post.getHeight(), post.getWidth(), sub);
                 db.executeInsert(insertPostStatement.table, insertPostStatement.program);
             }
 

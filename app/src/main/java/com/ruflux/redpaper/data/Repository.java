@@ -38,7 +38,6 @@ public class Repository implements BaseRepository {
     @Override
     public Observable<List<Post>> getPosts(final String sub) {
         return mLocalSource.getPostsFrom(sub)
-                .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())
                 .flatMap(new Function<List<Post>, ObservableSource<List<Post>>>() {
                     @Override
@@ -55,7 +54,8 @@ public class Repository implements BaseRepository {
                         } else
                             return mLocalSource.getPostsFrom(sub);
                     }
-                });
+                })
+                .observeOn(Schedulers.io());
     }
 
     @Override

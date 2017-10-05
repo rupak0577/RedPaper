@@ -8,6 +8,6 @@ import retrofit2.http.Path;
 
 interface RedditClient {
 
-    @GET("{sub}/hot.json")
+    @GET("{sub}/hot.json?raw_json=1")
     Observable<SubData> postsFromSub(@Path("sub") String sub);
 }

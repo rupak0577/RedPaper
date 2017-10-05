@@ -13,6 +13,7 @@ public class Post {
     // Custom field
     private String filename;
     private String thumbnailUrl;
+    private String previewUrl;
     private Long height;
     private Long width;
 
@@ -94,6 +95,14 @@ public class Post {
 
     public void setWidth(Long width) {
         this.width = width;
+    }
+
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public void setPreviewUrl(String previewUrl) {
+        this.previewUrl = previewUrl;
     }
 
     public static class Preview {

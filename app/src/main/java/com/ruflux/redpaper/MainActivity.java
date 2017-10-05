@@ -99,17 +99,12 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         super.onStart();
 
         bindPresenter();
+        mPresenter.start();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mReceiver = new ConnectionReceiver();
         registerReceiver(mReceiver, intentFilter);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mPresenter.start();
     }
 
     @Override

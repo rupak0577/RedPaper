@@ -17,7 +17,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class RemoteSource {
 
-    private final int VARIANT = 2;
+    private final int VARIANT_THUMB = 2;
+    private final int VARIANT_PREV = 3;
 
     private final String BASE_URL = "https://www.reddit.com/r/";
 
@@ -35,6 +36,7 @@ public class RemoteSource {
 
     public Observable<List<Post>> requestPosts(String sub) {
         return client.postsFromSub(sub)
+                .subscribeOn(Schedulers.io())
                 .map(new Function<SubData, List<Post>>() {
                     @Override
                     public List<Post> apply(@NonNull SubData subData) throws Exception {
@@ -49,7 +51,12 @@ public class RemoteSource {
                             post.setId(item.getData().getId());
                             post.setTitle(item.getData().getTitle());
                             post.setThumbnailUrl(item.getData().getPreview().getImages()
-                                    .get(0).getResolutions().get(VARIANT).getUrl().replaceAll("&amp;", "&"));
+                                    .get(0).getResolutions().get(VARIANT_THUMB).getUrl());
+                            int totalRez = item.getData().getPreview().getImages()
+                                    .get(0).getResolutions().size();
+                            post.setPreviewUrl(item.getData().getPreview().getImages()
+                                    .get(0).getResolutions()
+                                    .get(totalRez == VARIANT_PREV ? VARIANT_PREV-1 : VARIANT_PREV).getUrl());
                             post.setIsSelf(item.getData().getIsSelf());
                             post.setHeight(item.getData().getPreview().getImages().get(0).getSource().getHeight().longValue());
                             post.setWidth(item.getData().getPreview().getImages().get(0).getSource().getWidth().longValue());

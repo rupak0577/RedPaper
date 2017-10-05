@@ -8,6 +8,7 @@ CREATE TABLE post (
     is_self INTEGER AS Boolean DEFAULT 0,
     filename TEXT NOT NULL,
     thumbnail_url TEXT NOT NULL,
+    preview_url TEXT NOT NULL,
     height INTEGER NOT NULL,
     width INTEGER NOT NULL,
     belongs_to_sub TEXT NOT NULL,
@@ -22,12 +23,12 @@ JOIN sub ON post.belongs_to_sub = sub.sub_name
 WHERE sub.sub_name = ?;
 
 InsertOrReplacePost:
-INSERT OR REPLACE INTO post VALUES (?,?,?,?,?,?,?,?,?,?);
+INSERT OR REPLACE INTO post VALUES (?,?,?,?,?,?,?,?,?,?,?);
 
 UpdatePost:
 UPDATE post
 SET belongs_to_sub = ?, post_id = ?, domain = ?, title = ?, url = ?, is_self = ?, filename = ?,
-thumbnail_url = ?, height = ?, width = ?
+thumbnail_url = ?, preview_url = ?, height = ?, width = ?
 WHERE post_id = ?;
 
 DeletePostBySub:

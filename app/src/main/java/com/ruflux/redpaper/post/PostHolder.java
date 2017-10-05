@@ -1,5 +1,6 @@
 package com.ruflux.redpaper.post;
 
+import android.content.Intent;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.RecyclerView;
@@ -33,10 +34,18 @@ public class PostHolder extends RecyclerView.ViewHolder {
         mBinding.textCardItemDomain.setText(mItem.getDomain());
         mBinding.textCardItemRes.setText(mItem.getWidth() + "x" + mItem.getHeight());
         Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl())
-                .fit().centerCrop().noFade().
-                placeholder(R.drawable.ic_photo_white_24dp).
-                error(R.drawable.ic_broken_image_white_24dp).
-                into(mBinding.imageCardItemThumb);
+                .fit().centerCrop().noFade()
+                .placeholder(R.drawable.ic_photo_white_24dp)
+                .error(R.drawable.ic_broken_image_white_24dp)
+                .into(mBinding.imageCardItemThumb);
+        mBinding.imageCardItemThumb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), ImageViewer.class);
+                intent.putExtra(ImageViewer.EXTRA_URL, item.getPreviewUrl());
+                v.getContext().startActivity(intent);
+            }
+        });
 
         // Workaround for issue with FAB
         // https://stackoverflow.com/questions/39388978/android-floating-action-button-in-wrong-position
