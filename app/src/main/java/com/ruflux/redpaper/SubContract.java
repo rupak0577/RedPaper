@@ -8,7 +8,7 @@ import java.util.List;
 interface SubContract {
 
     interface Presenter extends Mvp.BasePresenter {
-        void loadPosts(boolean refresh);
+        void loadPosts();
     }
 
     interface View extends Mvp.BaseView<Presenter> {
@@ -18,7 +18,7 @@ interface SubContract {
 
         void stopLoadProgress();
 
-        void showLoadError(String message);
+        void showLoadError();
 
         String getSelectedSub();
     }

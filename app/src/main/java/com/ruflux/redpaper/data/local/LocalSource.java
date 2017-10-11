@@ -50,6 +50,12 @@ public class LocalSource {
                 });
     }
 
+    public boolean isSubEmpty(String sub) {
+        SqlDelightStatement statement = PostDb.FACTORY.SelectAllPostsBySub(sub);
+        return (db.getReadableDatabase().rawQuery(statement.statement, statement.args)
+                .getCount() == 0);
+    }
+
     public void savePostsSingleTransaction(String sub, List<Post> posts) {
         BriteDatabase.Transaction transaction = db.newTransaction();
         try {

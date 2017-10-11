@@ -25,9 +25,7 @@ public class SubPresenter implements SubContract.Presenter {
     }
 
     @Override
-    public void loadPosts(boolean refresh) {
-        if (refresh)
-            mRepository.refreshPosts();
+    public void loadPosts() {
         mView.get().startLoadProgress();
         mDisposable.add(mRepository.getPosts(mView.get().getSelectedSub())
                 .subscribeOn(Schedulers.io())
@@ -46,7 +44,7 @@ public class SubPresenter implements SubContract.Presenter {
                         if (mView.get() != null) {
                             mView.get().stopLoadProgress();
                             mView.get().showPosts(Collections.<Post>emptyList());
-                            mView.get().showLoadError(throwable.getMessage());
+                            mView.get().showLoadError();
                         }
                     }
                 }));
@@ -54,7 +52,7 @@ public class SubPresenter implements SubContract.Presenter {
 
     @Override
     public void start() {
-        loadPosts(false);
+        loadPosts();
     }
 
     @Override

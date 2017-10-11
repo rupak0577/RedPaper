@@ -9,6 +9,4 @@ import io.reactivex.Observable;
 public interface BaseRepository {
 
     Observable<List<Post>> getPosts(String sub);
-
-    void refreshPosts();
 }

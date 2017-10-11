@@ -13,15 +13,12 @@ import io.reactivex.ObservableSource;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 public class Repository implements BaseRepository {
 
     private static Repository INSTANCE = null;
     private final RemoteSource mRemoteSource;
     private final LocalSource mLocalSource;
-
-    private boolean mCacheIsDirty = false;
 
     private Repository(Context context) {
         mRemoteSource = new RemoteSource();
@@ -38,28 +35,22 @@ public class Repository implements BaseRepository {
     @Override
     public Observable<List<Post>> getPosts(final String sub) {
         return mLocalSource.getPostsFrom(sub)
-                .subscribeOn(Schedulers.io())
-                .flatMap(new Function<List<Post>, ObservableSource<List<Post>>>() {
+                .publish(new Function<Observable<List<Post>>, ObservableSource<List<Post>>>() {
                     @Override
-                    public ObservableSource<List<Post>> apply(@NonNull List<Post> posts) throws Exception {
-                        if (posts.isEmpty() || mCacheIsDirty) {
-                            mCacheIsDirty = false;
-                            return mRemoteSource.requestPosts(sub)
-                                    .doOnNext(new Consumer<List<Post>>() {
-                                        @Override
-                                        public void accept(List<Post> posts) throws Exception {
-                                            mLocalSource.savePostsSingleTransaction(sub, posts);
-                                        }
-                                    });
-                        } else
-                            return mLocalSource.getPostsFrom(sub);
+                    public ObservableSource<List<Post>> apply(@NonNull Observable<List<Post>> localObservable) throws Exception {
+                        return Observable.merge(localObservable, localObservable.takeUntil(refreshPosts(sub)))
+                                .onErrorResumeNext(localObservable);
                     }
-                })
-                .observeOn(Schedulers.io());
+                });
     }
 
-    @Override
-    public void refreshPosts() {
-        mCacheIsDirty = true;
+    private Observable<List<Post>> refreshPosts(final String sub) {
+        return mRemoteSource.requestPosts(sub)
+                .doOnNext(new Consumer<List<Post>>() {
+                    @Override
+                    public void accept(List<Post> posts) throws Exception {
+                        mLocalSource.savePostsSingleTransaction(sub, posts);
+                    }
+                });
     }
 }

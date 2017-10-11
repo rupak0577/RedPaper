@@ -34,6 +34,8 @@ import com.ruflux.redpaper.post.PostHolder;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.id.message;
+
 public class MainActivity extends AppCompatActivity implements SubContract.View {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
@@ -60,11 +62,6 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
 
-        if (savedInstanceState != null)
-            SUB = savedInstanceState.getString("SAVED_SUB");
-        else
-            SUB = EARTH;
-
         mAdapter = new SubAdapter();
         mBinding.recyclerFragment.setAdapter(mAdapter);
         mBinding.recyclerFragment.setLayoutManager(new LinearLayoutManager(this));
@@ -72,9 +69,14 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         mBinding.swipeFragment.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mPresenter.loadPosts(true);
+                mPresenter.start();
             }
         });
+
+        if (savedInstanceState != null) {
+            SUB = savedInstanceState.getString("SAVED_SUB");
+        } else
+            SUB = EARTH;
 
         noConn = Snackbar.make(mBinding.drawerRoot, "No Connection",
                 Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
@@ -143,21 +145,23 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
 
     @Override
     public void startLoadProgress() {
-        mBinding.progressFragmentTab.setVisibility(View.VISIBLE);
+        mBinding.swipeFragment.setEnabled(false);
         mBinding.progressFragmentTab.setIndeterminate(true);
+        mBinding.progressFragmentTab.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void stopLoadProgress() {
         if (mBinding.swipeFragment.isRefreshing())
             mBinding.swipeFragment.setRefreshing(false);
+        mBinding.swipeFragment.setEnabled(true);
         mBinding.progressFragmentTab.setIndeterminate(false);
         mBinding.progressFragmentTab.setVisibility(View.INVISIBLE);
     }
 
     @Override
-    public void showLoadError(String message) {
-        Toast.makeText(this, "Could not fetch images : " + message, Toast.LENGTH_SHORT)
+    public void showLoadError() {
+        Toast.makeText(this, "Could not fetch images", Toast.LENGTH_SHORT)
                 .show();
     }
 
@@ -201,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         }
 
         mPresenter.stop();
-        mPresenter.loadPosts(false);
+        mPresenter.start();
 
         setTitle(item.getTitle());
         mBinding.navViewRoot.setCheckedItem(item.getItemId());
