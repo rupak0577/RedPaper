@@ -30,22 +30,16 @@ public class SubPresenter implements SubContract.Presenter {
         mDisposable.add(mRepository.getPosts(mView.get().getSelectedSub())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<Post>>() {
-                    @Override
-                    public void accept(List<Post> posts) throws Exception {
-                        if (mView.get() != null) {
-                            mView.get().stopLoadProgress();
-                            mView.get().showPosts(posts);
-                        }
+                .subscribe(posts -> {
+                    if (mView.get() != null) {
+                        mView.get().stopLoadProgress();
+                        mView.get().showPosts(posts);
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        if (mView.get() != null) {
-                            mView.get().stopLoadProgress();
-                            mView.get().showPosts(Collections.<Post>emptyList());
-                            mView.get().showLoadError();
-                        }
+                }, throwable -> {
+                    if (mView.get() != null) {
+                        mView.get().stopLoadProgress();
+                        mView.get().showPosts(Collections.<Post>emptyList());
+                        mView.get().showLoadError();
                     }
                 }));
     }

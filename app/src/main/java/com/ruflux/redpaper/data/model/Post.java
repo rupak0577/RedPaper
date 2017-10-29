@@ -10,13 +10,6 @@ public class Post {
     private String url;
     private Boolean is_self;
 
-    // Custom field
-    private String filename;
-    private String thumbnailUrl;
-    private String previewUrl;
-    private Long height;
-    private Long width;
-
     public String getDomain() {
         return domain;
     }
@@ -65,45 +58,6 @@ public class Post {
         this.is_self = is_self;
     }
 
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
-    }
-
-    public void setThumbnailUrl(String thumbnailUrl) {
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public Long getHeight() {
-        return height;
-    }
-
-    public void setHeight(Long height) {
-        this.height = height;
-    }
-
-    public Long getWidth() {
-        return width;
-    }
-
-    public void setWidth(Long width) {
-        this.width = width;
-    }
-
-    public String getPreviewUrl() {
-        return previewUrl;
-    }
-
-    public void setPreviewUrl(String previewUrl) {
-        this.previewUrl = previewUrl;
-    }
 
     public static class Preview {
         private List<Image> images = null;

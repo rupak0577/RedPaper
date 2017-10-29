@@ -4,53 +4,72 @@ import android.content.Context;
 
 import com.ruflux.redpaper.data.local.LocalSource;
 import com.ruflux.redpaper.data.model.Post;
-import com.ruflux.redpaper.data.remote.RemoteSource;
+import com.ruflux.redpaper.data.model.SubData;
+import com.ruflux.redpaper.data.remote.RedditApi;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Consumer;
+import javax.inject.Inject;
+
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 public class Repository implements BaseRepository {
 
     private static Repository INSTANCE = null;
-    private final RemoteSource mRemoteSource;
+    private final RedditApi mRemoteSource;
     private final LocalSource mLocalSource;
 
-    private Repository(Context context) {
-        mRemoteSource = new RemoteSource();
+    @Inject
+    public Repository(Context context, RedditApi redditApi) {
+        mRemoteSource = redditApi;
         mLocalSource = new LocalSource(context);
     }
 
-    public static Repository getInstance(Context context) {
-        if (INSTANCE == null) {
-            INSTANCE = new Repository(context);
-        }
-        return INSTANCE;
-    }
-
     @Override
-    public Observable<List<Post>> getPosts(final String sub) {
+    public Single<List<Post>> getPosts(final String sub) {
         return mLocalSource.getPostsFrom(sub)
-                .publish(new Function<Observable<List<Post>>, ObservableSource<List<Post>>>() {
-                    @Override
-                    public ObservableSource<List<Post>> apply(@NonNull Observable<List<Post>> localObservable) throws Exception {
-                        return Observable.merge(localObservable, localObservable.takeUntil(refreshPosts(sub)))
-                                .onErrorResumeNext(localObservable);
-                    }
-                });
+                .publish((Function<Single<List<Post>>, SingleSource<List<Post>>>)
+                        localObservable -> Single.merge(localObservable, localObservable.takeUntil(refreshPosts(sub))));
     }
 
-    private Observable<List<Post>> refreshPosts(final String sub) {
-        return mRemoteSource.requestPosts(sub)
-                .doOnNext(new Consumer<List<Post>>() {
-                    @Override
-                    public void accept(List<Post> posts) throws Exception {
-                        mLocalSource.savePostsSingleTransaction(sub, posts);
-                    }
-                });
+    private Single<List<Post>> refreshPosts(final String sub) {
+        return requestPosts(sub)
+                .doOnSuccess(posts -> mLocalSource.savePostsSingleTransaction(sub, posts))
+                .doOnError(throwable -> new Throwable());
+    }
+
+    private Single<List<Post>> requestPosts(String sub) {
+        return Single.create(subscriber -> {
+            mRemoteSource.postsFromSub(sub)
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(response -> {
+
+                        List<Post> posts = new ArrayList<>();
+                        Post post;
+
+                        for (SubData.Child item : response.getData().getChildren()) {
+                            if (item.getData().getIsSelf() || item.getData().getDomain().equals("reddit.com"))
+                                continue;
+                            post = new Post();
+
+                            post.setId(item.getData().getId());
+                            post.setTitle(item.getData().getTitle());
+                            post.setDomain(item.getData().getDomain());
+                            post.setUrl(item.getData().getUrl());
+                            post.setPreview(item.getData().getPreview());
+                            post.setIsSelf(item.getData().getIsSelf());
+
+                            posts.add(post);
+                        }
+
+                        subscriber.onSuccess(posts);
+                    }, throwable -> {
+                        subscriber.onError(new Throwable());
+                    });
+        });
     }
 }

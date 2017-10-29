@@ -31,8 +31,23 @@ public class PostHolder extends RecyclerView.ViewHolder {
         mItem = item;
 
         mBinding.textCardItemTitle.setText(mItem.getTitle().trim());
-        mBinding.textCardItemDomain.setText(mItem.getDomain());
+
+        // Trim domain text
+        String dom = mItem.getDomain();
+        if (dom.length() > 12)
+            dom = dom.substring(0, 6) + "..." + dom.substring(dom.length() - 6, dom.length());
+        mBinding.textCardItemDomain.setText(dom);
+
         mBinding.textCardItemRes.setText(mItem.getWidth() + "x" + mItem.getHeight());
+
+        // https://imgur.com/xyz --> https://i.imgur.com/xyz.jpeg
+        String url = item.getData().getUrl();
+        if (post.getDomain().equals("imgur.com")) {
+            post.setUrl(url.substring(0, url.indexOf("/") + 2) + "i."
+                    + url.substring(url.indexOf("i")) + ".jpeg");
+        } else
+            post.setUrl(url);
+
         Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl())
                 .fit().centerCrop().noFade()
                 .placeholder(R.drawable.ic_photo_white_24dp)
