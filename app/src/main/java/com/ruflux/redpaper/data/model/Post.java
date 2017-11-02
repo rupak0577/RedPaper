@@ -61,7 +61,6 @@ public class Post {
 
     public static class Preview {
         private List<Image> images = null;
-        private Boolean enabled;
 
         public List<Image> getImages() {
             return images;
@@ -71,18 +70,9 @@ public class Post {
             this.images = images;
         }
 
-        public Boolean getEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(Boolean enabled) {
-            this.enabled = enabled;
-        }
-
         public static class Image {
             private Source source;
             private List<Resolution> resolutions = null;
-            private String id;
 
             public Source getSource() {
                 return source;
@@ -98,14 +88,6 @@ public class Post {
 
             public void setResolutions(List<Resolution> resolutions) {
                 this.resolutions = resolutions;
-            }
-
-            public String getId() {
-                return id;
-            }
-
-            public void setId(String id) {
-                this.id = id;
             }
         }
 

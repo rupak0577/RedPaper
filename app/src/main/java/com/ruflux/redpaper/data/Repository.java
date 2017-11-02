@@ -1,7 +1,5 @@
 package com.ruflux.redpaper.data;
 
-import android.content.Context;
-
 import com.ruflux.redpaper.data.local.LocalSource;
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.data.model.SubData;
@@ -13,27 +11,22 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.reactivex.Single;
-import io.reactivex.SingleSource;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class Repository implements BaseRepository {
 
-    private static Repository INSTANCE = null;
     private final RedditApi mRemoteSource;
     private final LocalSource mLocalSource;
 
     @Inject
-    public Repository(Context context, RedditApi redditApi) {
+    public Repository(LocalSource localSource, RedditApi redditApi) {
         mRemoteSource = redditApi;
-        mLocalSource = new LocalSource(context);
+        mLocalSource = localSource;
     }
 
     @Override
     public Single<List<Post>> getPosts(final String sub) {
-        return mLocalSource.getPostsFrom(sub)
-                .publish((Function<Single<List<Post>>, SingleSource<List<Post>>>)
-                        localObservable -> Single.merge(localObservable, localObservable.takeUntil(refreshPosts(sub))));
+        //return refreshPosts(sub);
     }
 
     private Single<List<Post>> refreshPosts(final String sub) {

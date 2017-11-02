@@ -6,11 +6,6 @@ CREATE TABLE post (
     title TEXT NOT NULL,
     url TEXT NOT NULL,
     is_self INTEGER AS Boolean DEFAULT 0,
-    filename TEXT NOT NULL,
-    thumbnail_url TEXT NOT NULL,
-    preview_url TEXT NOT NULL,
-    height INTEGER NOT NULL,
-    width INTEGER NOT NULL,
     belongs_to_sub TEXT NOT NULL,
 
     FOREIGN KEY (belongs_to_sub) REFERENCES sub(sub_name) ON DELETE CASCADE
@@ -22,13 +17,12 @@ FROM post
 JOIN sub ON post.belongs_to_sub = sub.sub_name
 WHERE sub.sub_name = ?;
 
-InsertOrReplacePost:
-INSERT OR REPLACE INTO post VALUES (?,?,?,?,?,?,?,?,?,?,?);
+InsertPost:
+INSERT INTO post VALUES (?,?,?,?,?,?);
 
 UpdatePost:
 UPDATE post
-SET belongs_to_sub = ?, post_id = ?, domain = ?, title = ?, url = ?, is_self = ?, filename = ?,
-thumbnail_url = ?, preview_url = ?, height = ?, width = ?
+SET belongs_to_sub = ?, post_id = ?, domain = ?, title = ?, url = ?, is_self = ?
 WHERE post_id = ?;
 
 DeletePostBySub:
