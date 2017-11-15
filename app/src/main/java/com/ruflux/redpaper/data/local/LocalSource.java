@@ -1,7 +1,5 @@
 package com.ruflux.redpaper.data.local;
 
-import android.content.Context;
-
 import com.ruflux.redpaper.data.local.model.PostDb;
 import com.ruflux.redpaper.data.local.model.PostModel;
 import com.ruflux.redpaper.data.local.model.ResolutionDb;
@@ -11,22 +9,19 @@ import com.ruflux.redpaper.data.local.model.SourceModel;
 import com.ruflux.redpaper.data.local.model.SubModel;
 import com.ruflux.redpaper.data.model.Post;
 import com.squareup.sqlbrite2.BriteDatabase;
-import com.squareup.sqlbrite2.SqlBrite;
 import com.squareup.sqldelight.SqlDelightStatement;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Single;
-import io.reactivex.schedulers.Schedulers;
 
 public class LocalSource {
 
     private BriteDatabase db;
 
-    public LocalSource(Context context) {
-        SqlBrite sqlBrite = new SqlBrite.Builder().build();
-        db = sqlBrite.wrapDatabaseHelper(new DbHelper(context), Schedulers.io());
+    public LocalSource(BriteDatabase briteDatabase) {
+        db = briteDatabase;
     }
 
     public Single<List<Post>> getPostsFrom(String sub) {

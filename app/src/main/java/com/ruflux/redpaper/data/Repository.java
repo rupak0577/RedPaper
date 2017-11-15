@@ -8,8 +8,6 @@ import com.ruflux.redpaper.data.remote.RedditApi;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
@@ -18,7 +16,6 @@ public class Repository implements BaseRepository {
     private final RedditApi mRemoteSource;
     private final LocalSource mLocalSource;
 
-    @Inject
     public Repository(LocalSource localSource, RedditApi redditApi) {
         mRemoteSource = redditApi;
         mLocalSource = localSource;
@@ -26,7 +23,7 @@ public class Repository implements BaseRepository {
 
     @Override
     public Single<List<Post>> getPosts(final String sub) {
-        //return refreshPosts(sub);
+        return refreshPosts(sub);
     }
 
     private Single<List<Post>> refreshPosts(final String sub) {

@@ -34,8 +34,6 @@ import com.ruflux.redpaper.post.PostHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.R.id.message;
-
 public class MainActivity extends AppCompatActivity implements SubContract.View {
 
     private static final int PERMISSION_REQUEST_CODE = 1;

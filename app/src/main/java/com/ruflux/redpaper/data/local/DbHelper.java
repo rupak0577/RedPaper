@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.ruflux.redpaper.data.local.model.PostModel;
+import com.ruflux.redpaper.data.local.model.ResolutionModel;
+import com.ruflux.redpaper.data.local.model.SourceModel;
 import com.ruflux.redpaper.data.local.model.SubModel;
 
 public class DbHelper extends SQLiteOpenHelper {
@@ -22,6 +24,8 @@ public class DbHelper extends SQLiteOpenHelper {
             db.beginTransaction();
             db.execSQL(SubModel.CREATE_TABLE);
             db.execSQL(PostModel.CREATE_TABLE);
+            db.execSQL(ResolutionModel.CREATE_TABLE);
+            db.execSQL(SourceModel.CREATE_TABLE);
             db.setTransactionSuccessful();
         } catch (Exception e) {
             // Log

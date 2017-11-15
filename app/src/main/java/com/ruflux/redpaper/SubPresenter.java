@@ -5,22 +5,23 @@ import com.ruflux.redpaper.data.model.Post;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
-import java.util.List;
+
+import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class SubPresenter implements SubContract.Presenter {
 
     private WeakReference<SubContract.View> mView;
-    private Repository mRepository;
+    @Inject Repository mRepository;
     private CompositeDisposable mDisposable;
 
     public SubPresenter(SubContract.View view) {
         mView = new WeakReference<>(view);
-        mRepository = Repository.getInstance(mView.get().fetchContext().getApplicationContext());
+        ((RedPaperApplication) view.fetchContext().getApplicationContext())
+                .getRepositoryComponent().inject(this);
         mDisposable = new CompositeDisposable();
     }
 

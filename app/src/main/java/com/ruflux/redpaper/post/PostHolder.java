@@ -15,7 +15,12 @@ import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.databinding.FragmentCardBinding;
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 public class PostHolder extends RecyclerView.ViewHolder {
+
+    private final int VARIANT_THUMB = 2;
+    private final int VARIANT_PREV = 3;
 
     private final FragmentCardBinding mBinding;
     private Post mItem;
@@ -38,17 +43,22 @@ public class PostHolder extends RecyclerView.ViewHolder {
             dom = dom.substring(0, 6) + "..." + dom.substring(dom.length() - 6, dom.length());
         mBinding.textCardItemDomain.setText(dom);
 
-        mBinding.textCardItemRes.setText(mItem.getWidth() + "x" + mItem.getHeight());
+        mBinding.textCardItemRes.setText(mItem.getPreview().getImages().get(0).getSource().getWidth() +
+                "x" + mItem.getPreview().getImages().get(0).getSource().getHeight());
 
         // https://imgur.com/xyz --> https://i.imgur.com/xyz.jpeg
-        String url = item.getData().getUrl();
-        if (post.getDomain().equals("imgur.com")) {
-            post.setUrl(url.substring(0, url.indexOf("/") + 2) + "i."
+        String url = item.getUrl();
+        if (mItem.getDomain().equals("imgur.com")) {
+            mItem.setUrl(url.substring(0, url.indexOf("/") + 2) + "i."
                     + url.substring(url.indexOf("i")) + ".jpeg");
         } else
-            post.setUrl(url);
+            mItem.setUrl(url);
 
-        Picasso.with(mBinding.getRoot().getContext()).load(mItem.getThumbnailUrl())
+        String filename = url.substring(url.lastIndexOf("/") + 1);
+        List<Post.Preview.Resolution> resolutions = mItem.getPreview().getImages().get(0).getResolutions();
+        int totalRez = resolutions.size();
+
+        Picasso.with(mBinding.getRoot().getContext()).load(resolutions.get(VARIANT_THUMB).getUrl())
                 .fit().centerCrop().noFade()
                 .placeholder(R.drawable.ic_photo_white_24dp)
                 .error(R.drawable.ic_broken_image_white_24dp)
@@ -57,7 +67,8 @@ public class PostHolder extends RecyclerView.ViewHolder {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), ImageViewer.class);
-                intent.putExtra(ImageViewer.EXTRA_URL, item.getPreviewUrl());
+                intent.putExtra(ImageViewer.EXTRA_URL, resolutions
+                        .get(totalRez == VARIANT_PREV ? VARIANT_PREV-1 : VARIANT_PREV).getUrl());
                 v.getContext().startActivity(intent);
             }
         });
@@ -94,7 +105,7 @@ public class PostHolder extends RecyclerView.ViewHolder {
 
                                 downloadManRefId = ((RedPaperApplication) v.getContext()
                                         .getApplicationContext()).getDownloader()
-                                        .downloadImage(item.getUrl(), item.getFilename());
+                                        .downloadImage(item.getUrl(), filename);
                             }
                             break;
                         case 1:
