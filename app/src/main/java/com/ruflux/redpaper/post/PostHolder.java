@@ -87,7 +87,7 @@ public class PostHolder extends RecyclerView.ViewHolder {
                     Downloader downloader = ((RedPaperApplication) v.getContext().getApplicationContext())
                             .getDownloader();
 
-                    if (!downloader.isConnected()) {
+                    if (!(((RedPaperApplication) v.getContext().getApplicationContext()).isConnected())) {
                         Toast.makeText(v.getContext(), "No connection",
                                 Toast.LENGTH_SHORT).show();
                         return;

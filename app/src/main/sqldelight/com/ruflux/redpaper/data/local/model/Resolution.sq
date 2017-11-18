@@ -17,3 +17,6 @@ WHERE post.post_id = ?;
 
 InsertResolution:
 INSERT INTO resolution VALUES (?,?,?,?);
+
+ClearResolutionTable:
+DELETE FROM resolution;

@@ -17,3 +17,6 @@ WHERE post.post_id = ?;
 
 InsertSource:
 INSERT INTO source VALUES (?,?,?,?);
+
+ClearSourceTable:
+DELETE FROM source;

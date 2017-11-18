@@ -13,5 +13,5 @@ DeleteSub:
 DELETE FROM sub
 WHERE sub_name = ?;
 
-DeleteAllSubs:
+ClearSubTable:
 DELETE FROM sub;

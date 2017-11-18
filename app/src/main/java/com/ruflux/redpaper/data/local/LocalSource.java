@@ -1,5 +1,7 @@
 package com.ruflux.redpaper.data.local;
 
+import android.database.Cursor;
+
 import com.ruflux.redpaper.data.local.model.PostDb;
 import com.ruflux.redpaper.data.local.model.PostModel;
 import com.ruflux.redpaper.data.local.model.ResolutionDb;
@@ -14,7 +16,7 @@ import com.squareup.sqldelight.SqlDelightStatement;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Single;
+import io.reactivex.Observable;
 
 public class LocalSource {
 
@@ -24,22 +26,49 @@ public class LocalSource {
         db = briteDatabase;
     }
 
-    public Single<List<Post>> getPostsFrom(String sub) {
+    public Observable<List<Post>> getPostsFrom(String sub) {
         SqlDelightStatement statement = PostDb.FACTORY.SelectAllPostsBySub(sub);
-        return Single.fromObservable(db.createQuery(statement.tables, statement.statement, statement.args)
+        return db.createQuery(statement.tables, statement.statement, statement.args)
                 .mapToList(cursor -> {
                     Post post = new Post();
                     post.setDomain(PostDb.MAPPER.map(cursor).domain());
                     post.setId(PostDb.MAPPER.map(cursor).post_id());
                     post.setTitle(PostDb.MAPPER.map(cursor).title());
                     post.setUrl(PostDb.MAPPER.map(cursor).url());
-                    post.setIsSelf(PostDb.MAPPER.map(cursor).is_self());
+
+                    // Read from Source table
+                    SqlDelightStatement sourceStatement = SourceDb.FACTORY
+                            .SelectAllSourceByPost(post.getId());
+                    Cursor sourceCursor = db.getReadableDatabase().rawQuery(sourceStatement.statement, sourceStatement.args);
+                    sourceCursor.moveToFirst();
+
+                    Post.Preview.Source source = new Post.Preview.Source();
+                    source.setUrl(SourceDb.MAPPER.map(sourceCursor).url());
+                    source.setWidth(SourceDb.MAPPER.map(sourceCursor).width());
+                    source.setHeight(SourceDb.MAPPER.map(sourceCursor).height());
+
+                    sourceCursor.close();
+
+                    // Read from Resolutions table
+                    SqlDelightStatement resStatement = ResolutionDb.FACTORY
+                            .SelectAllResolutionByPost(post.getId());
+                    Cursor resCursor = db.getReadableDatabase().rawQuery(resStatement.statement, resStatement.args);
+
+                    List<Post.Preview.Resolution> resolutions = new ArrayList<>();
+                    while (resCursor.moveToNext()) {
+                        Post.Preview.Resolution resolution = new Post.Preview.Resolution();
+                        resolution.setUrl(ResolutionDb.MAPPER.map(resCursor).url());
+                        resolution.setWidth(ResolutionDb.MAPPER.map(resCursor).width());
+                        resolution.setHeight(ResolutionDb.MAPPER.map(resCursor).height());
+
+                        resolutions.add(resolution);
+                    }
+
+                    resCursor.close();
 
                     Post.Preview.Image image = new Post.Preview.Image();
-                    getSource(PostDb.MAPPER.map(cursor).post_id())
-                            .subscribe(image::setSource);
-                    getResolutions(PostDb.MAPPER.map(cursor).post_id())
-                            .subscribe(image::setResolutions);
+                    image.setSource(source);
+                    image.setResolutions(resolutions);
 
                     List<Post.Preview.Image> images = new ArrayList<>();
                     images.add(image);
@@ -49,39 +78,18 @@ public class LocalSource {
                     post.setPreview(preview);
 
                     return post;
-                }));
-    }
-
-    private Single<Post.Preview.Source> getSource(String post_id) {
-        SqlDelightStatement statement = SourceDb.FACTORY.SelectAllSourceByPost(post_id);
-        return Single.fromObservable(db.createQuery(statement.tables, statement.statement, statement.args)
-                .mapToOne(cursor -> {
-                    Post.Preview.Source source = new Post.Preview.Source();
-                    source.setUrl(SourceDb.MAPPER.map(cursor).url());
-                    source.setWidth(SourceDb.MAPPER.map(cursor).width());
-                    source.setHeight(SourceDb.MAPPER.map(cursor).height());
-
-                    return source;
-                }));
-    }
-
-    private Single<List<Post.Preview.Resolution>> getResolutions(String post_id) {
-        SqlDelightStatement statement = ResolutionDb.FACTORY.SelectAllResolutionByPost(post_id);
-        return Single.fromObservable(db.createQuery(statement.tables, statement.statement, statement.args)
-                .mapToList(cursor -> {
-                    Post.Preview.Resolution resolution = new Post.Preview.Resolution();
-                    resolution.setUrl(ResolutionDb.MAPPER.map(cursor).url());
-                    resolution.setWidth(ResolutionDb.MAPPER.map(cursor).width());
-                    resolution.setHeight(ResolutionDb.MAPPER.map(cursor).height());
-
-                    return resolution;
-                }));
+                });
     }
 
     public boolean isSubEmpty(String sub) {
-        SqlDelightStatement statement = PostDb.FACTORY.SelectAllPostsBySub(sub);
-        return (db.getReadableDatabase().rawQuery(statement.statement, statement.args)
-                .getCount() == 0);
+        SqlDelightStatement statement = PostDb.FACTORY.CountAllPosts(sub);
+        Cursor cursor = db.getReadableDatabase().rawQuery(statement.statement, statement.args);
+
+        cursor.moveToFirst();
+        int count = cursor.getInt(0);
+        cursor.close();
+
+        return (count == 0);
     }
 
     public void savePostsSingleTransaction(String sub, List<Post> posts) {
@@ -98,7 +106,7 @@ public class LocalSource {
             db.executeInsert(insertSubStatement.table, insertSubStatement.program);
             for (Post post : posts) {
                 insertPostStatement.bind(post.getId(), post.getDomain(), post.getTitle(),
-                        post.getUrl(), post.getIsSelf(), sub);
+                        post.getUrl(), sub);
                 db.executeInsert(insertPostStatement.table, insertPostStatement.program);
 
                 insertSourceStatment.bind(post.getId(), post.getPreview().getImages().get(0).getSource().getUrl(),

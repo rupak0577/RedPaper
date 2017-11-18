@@ -1,10 +1,8 @@
 package com.ruflux.redpaper;
 
 import com.ruflux.redpaper.data.Repository;
-import com.ruflux.redpaper.data.model.Post;
 
 import java.lang.ref.WeakReference;
-import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -28,7 +26,7 @@ public class SubPresenter implements SubContract.Presenter {
     @Override
     public void loadPosts() {
         mView.get().startLoadProgress();
-        mDisposable.add(mRepository.getPosts(mView.get().getSelectedSub())
+        mDisposable.add(mRepository.fetchPosts(mView.get().getSelectedSub())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(posts -> {
@@ -39,7 +37,6 @@ public class SubPresenter implements SubContract.Presenter {
                 }, throwable -> {
                     if (mView.get() != null) {
                         mView.get().stopLoadProgress();
-                        mView.get().showPosts(Collections.<Post>emptyList());
                         mView.get().showLoadError();
                     }
                 }));

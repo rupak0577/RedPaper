@@ -238,8 +238,7 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean val = checkConnection();
-            ((RedPaperApplication) context.getApplicationContext())
-                    .getDownloader().setConnection(val);
+            ((RedPaperApplication) context.getApplicationContext()).setConnected(val);
             if (!val)
                 noConn.show();
             else

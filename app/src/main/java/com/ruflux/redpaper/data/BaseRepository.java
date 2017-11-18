@@ -4,9 +4,9 @@ import com.ruflux.redpaper.data.model.Post;
 
 import java.util.List;
 
-import io.reactivex.Single;
+import io.reactivex.Observable;
 
 public interface BaseRepository {
 
-    Single<List<Post>> getPosts(String sub);
+    Observable<List<Post>> fetchPosts(String sub);
 }

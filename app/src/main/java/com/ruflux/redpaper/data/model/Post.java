@@ -8,7 +8,6 @@ public class Post {
     private String title;
     private Preview preview;
     private String url;
-    private Boolean is_self;
 
     public String getDomain() {
         return domain;
@@ -49,15 +48,6 @@ public class Post {
     public void setUrl(String url) {
         this.url = url;
     }
-
-    public Boolean getIsSelf() {
-        return is_self;
-    }
-
-    public void setIsSelf(Boolean is_self) {
-        this.is_self = is_self;
-    }
-
 
     public static class Preview {
         private List<Image> images = null;

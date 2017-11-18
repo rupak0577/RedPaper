@@ -12,6 +12,7 @@ import com.squareup.leakcanary.LeakCanary;
 public class RedPaperApplication extends Application {
 
     private RepositoryComponent repositoryComponent;
+    private boolean isConnected;
 
     @Override
     public void onCreate() {
@@ -36,5 +37,13 @@ public class RedPaperApplication extends Application {
 
     public RepositoryComponent getRepositoryComponent() {
         return repositoryComponent;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
     }
 }

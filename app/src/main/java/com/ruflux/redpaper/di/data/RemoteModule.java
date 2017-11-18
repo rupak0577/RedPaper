@@ -3,6 +3,7 @@ package com.ruflux.redpaper.di.data;
 import android.app.Application;
 
 import com.ruflux.redpaper.data.remote.RedditApi;
+import com.ruflux.redpaper.data.remote.RemoteSource;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +19,12 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 @Module
 public class RemoteModule {
+
+    @Provides
+    @Singleton
+    RemoteSource provideRemoteSource(RedditApi redditApi) {
+        return new RemoteSource(redditApi);
+    }
 
     @Provides
     @Singleton
