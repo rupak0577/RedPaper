@@ -11,95 +11,88 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.databinding.ActivityMainBinding;
-import com.ruflux.redpaper.databinding.FragmentCardBinding;
-import com.ruflux.redpaper.post.PostHolder;
+import com.ruflux.redpaper.di.AppModule;
+import com.ruflux.redpaper.di.sub.DaggerSubComponent;
+import com.ruflux.redpaper.di.sub.SubContractViewModule;
+import com.ruflux.redpaper.sub.SubFragment;
+import com.ruflux.redpaper.sub.SubPresenter;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.inject.Inject;
 
-public class MainActivity extends AppCompatActivity implements SubContract.View {
+public class MainActivity extends AppCompatActivity implements SubFragment.FragmentListener {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private final String EARTH = "EarthPorn";
     private final String ROAD = "RoadPorn";
     private final String RURAL = "RuralPorn";
     private final String ABANDONED = "AbandonedPorn";
+    private String SUB = EARTH;
 
     private ActivityMainBinding mBinding;
 
-    private SubPresenter mPresenter;
     private ConnectionReceiver mReceiver;
     private Snackbar noConn;
-    private SubAdapter mAdapter;
+    private SubFragment mFragment;
 
-    private String SUB;
+    @Inject SubPresenter mPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mBinding.swipeFragment.setOnRefreshListener(() -> mPresenter.loadPosts(SUB));
+        mBinding.navViewRoot.setNavigationItemSelectedListener(
+                item -> {
+                    selectDrawerItem(item);
+                    return false;
+                }
+        );
+        noConn = Snackbar.make(mBinding.drawerRoot, R.string.no_connection,
+                Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
 
         setSupportActionBar(mBinding.toolbarPrimary);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
 
-        mAdapter = new SubAdapter();
-        mBinding.recyclerFragment.setAdapter(mAdapter);
-        mBinding.recyclerFragment.setLayoutManager(new LinearLayoutManager(this));
-
-        mBinding.swipeFragment.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mPresenter.start();
-            }
-        });
-
-        if (savedInstanceState != null) {
-            SUB = savedInstanceState.getString("SAVED_SUB");
-        } else
-            SUB = EARTH;
-
-        noConn = Snackbar.make(mBinding.drawerRoot, "No Connection",
-                Snackbar.LENGTH_INDEFINITE).setActionTextColor(Color.YELLOW);
-
-        boolean connection = checkConnection();
-        if (!connection)
+        if (!isConnected())
             noConn.show();
 
-        mBinding.navViewRoot.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        selectDrawerItem(item);
-                        return false;
-                    }
-                }
-        );
+        mFragment = new SubFragment();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.fragment_container, mFragment)
+                .commit();
+
+        DaggerSubComponent.builder()
+                .appModule(new AppModule(this.getApplication()))
+                .subContractViewModule(new SubContractViewModule(mFragment))
+                .build().inject(this);
+
+        if (savedInstanceState != null)
+            SUB = savedInstanceState.getString("SAVED");
+        mPresenter.loadPosts(SUB);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("SAVED", SUB);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        bindPresenter();
-        mPresenter.start();
+        if (!isPermissionGranted())
+            requestPermission();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -108,59 +101,10 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putString("SAVED_SUB", SUB);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
     protected void onStop() {
         unregisterReceiver(mReceiver);
-        unbindPresenter();
-        super.onStop();
-    }
-
-    @Override
-    public void bindPresenter() {
-        if (mPresenter == null)
-            mPresenter = new SubPresenter(this);
-    }
-
-    @Override
-    public void unbindPresenter() {
         mPresenter.stop();
-    }
-
-    @Override
-    public Context fetchContext() {
-        return this;
-    }
-
-    @Override
-    public void showPosts(List<Post> posts) {
-        mAdapter.setItems(posts);
-    }
-
-    @Override
-    public void startLoadProgress() {
-        mBinding.swipeFragment.setEnabled(false);
-        mBinding.progressFragmentTab.setIndeterminate(true);
-        mBinding.progressFragmentTab.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void stopLoadProgress() {
-        if (mBinding.swipeFragment.isRefreshing())
-            mBinding.swipeFragment.setRefreshing(false);
-        mBinding.swipeFragment.setEnabled(true);
-        mBinding.progressFragmentTab.setIndeterminate(false);
-        mBinding.progressFragmentTab.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void showLoadError() {
-        Toast.makeText(this, "Could not fetch images", Toast.LENGTH_SHORT)
-                .show();
+        super.onStop();
     }
 
     @Override
@@ -178,13 +122,48 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         switch (requestCode) {
             case PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission Granted",
+                    Toast.makeText(this, R.string.permission_granted,
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Permission Denied. Write permission required to save images",
+                    Toast.makeText(this, R.string.permission_denied,
                             Toast.LENGTH_LONG).show();
+                    finish();
                 }
         }
+    }
+
+    @Override
+    public void startLoadProgress() {
+        mBinding.swipeFragment.setRefreshing(true);
+    }
+
+    @Override
+    public void stopLoadProgress() {
+        mBinding.swipeFragment.setRefreshing(false);
+    }
+
+    @Override
+    public void showLoadError(String message) {
+        Toast.makeText(this, getString(R.string.load_error) + message, Toast.LENGTH_SHORT).show();
+    }
+
+    public boolean isPermissionGranted() {
+        int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return (result == PackageManager.PERMISSION_GRANTED);
+    }
+
+    public void requestPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                PERMISSION_REQUEST_CODE);
+    }
+
+    public boolean isConnected() {
+        ConnectivityManager cm =
+                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return (activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting());
     }
 
     private void selectDrawerItem(MenuItem item) {
@@ -203,81 +182,22 @@ public class MainActivity extends AppCompatActivity implements SubContract.View 
         }
 
         mPresenter.stop();
-        mPresenter.start();
+        mPresenter.loadPosts(SUB);
 
         setTitle(item.getTitle());
         mBinding.navViewRoot.setCheckedItem(item.getItemId());
         mBinding.drawerRoot.closeDrawers();
     }
 
-    public boolean checkConnection() {
-        ConnectivityManager cm =
-                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return (activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting());
-    }
-
-    public boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return (result == PackageManager.PERMISSION_GRANTED);
-    }
-
-    public void requestPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                PERMISSION_REQUEST_CODE);
-    }
-
-    @Override
-    public String getSelectedSub() {
-        return SUB;
-    }
-
     private class ConnectionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            boolean val = checkConnection();
+            boolean val = isConnected();
             ((RedPaperApplication) context.getApplicationContext()).setConnected(val);
             if (!val)
                 noConn.show();
             else
                 noConn.dismiss();
-        }
-    }
-
-    private static class SubAdapter extends RecyclerView.Adapter<PostHolder> {
-
-        private List<Post> mPosts;
-
-        SubAdapter() {
-            this.mPosts = new ArrayList<>();
-        }
-
-        @Override
-        public PostHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-            FragmentCardBinding itemBinding = DataBindingUtil.inflate(layoutInflater,
-                    R.layout.fragment_card, parent, false);
-            return new PostHolder(itemBinding);
-        }
-
-        @Override
-        public void onBindViewHolder(final PostHolder holder, int position) {
-            final Post post = mPosts.get(position);
-
-            holder.bindItem(post);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mPosts.size();
-        }
-
-        void setItems(List<Post> posts) {
-            this.mPosts.clear();
-            this.mPosts.addAll(posts);
-            notifyDataSetChanged();
         }
     }
 }

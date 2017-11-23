@@ -8,7 +8,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
 
-import com.ruflux.redpaper.MainActivity;
 import com.ruflux.redpaper.R;
 import com.ruflux.redpaper.RedPaperApplication;
 import com.ruflux.redpaper.data.model.Post;
@@ -80,42 +79,33 @@ public class PostHolder extends RecyclerView.ViewHolder {
         params.anchorGravity = Gravity.BOTTOM | GravityCompat.END;
         params.setAnchorId(mBinding.imageCardItemThumb.getId());
         mBinding.fabCardItem.setLayoutParams(params);
-        mBinding.fabCardItem.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (((MainActivity) v.getContext()).checkPermission()) {
-                    Downloader downloader = ((RedPaperApplication) v.getContext().getApplicationContext())
-                            .getDownloader();
+        mBinding.fabCardItem.setOnClickListener(v -> {
+            Downloader downloader = ((RedPaperApplication) v.getContext().getApplicationContext())
+                    .getDownloader();
 
-                    if (!(((RedPaperApplication) v.getContext().getApplicationContext()).isConnected())) {
-                        Toast.makeText(v.getContext(), "No connection",
+            if (!(((RedPaperApplication) v.getContext().getApplicationContext()).isConnected())) {
+                return;
+            }
+            int status = downloader.queryStatus(downloadManRefId);
+
+            switch (status) {
+                case 0:
+                    if (mItem.getDomain().equals("flickr.com"))
+                        Toast.makeText(v.getContext(), R.string.flickr_link,
+                                Toast.LENGTH_LONG).show();
+                    else {
+                        Toast.makeText(v.getContext(), R.string.downloading,
                                 Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    int status = downloader.queryStatus(downloadManRefId);
 
-                    switch (status) {
-                        case 0:
-                            if (mItem.getDomain().equals("flickr.com"))
-                                Toast.makeText(v.getContext(), "Flickr links cannot be downloaded on mobile",
-                                        Toast.LENGTH_LONG).show();
-                            else {
-                                Toast.makeText(v.getContext(), "Downloading image",
-                                        Toast.LENGTH_SHORT).show();
-
-                                downloadManRefId = ((RedPaperApplication) v.getContext()
-                                        .getApplicationContext()).getDownloader()
-                                        .downloadImage(item.getUrl(), filename);
-                            }
-                            break;
-                        case 1:
-                            Toast.makeText(v.getContext(), "Download already in progress",
-                                    Toast.LENGTH_SHORT).show();
-                            break;
+                        downloadManRefId = ((RedPaperApplication) v.getContext()
+                                .getApplicationContext()).getDownloader()
+                                .downloadImage(item.getUrl(), filename);
                     }
-                } else {
-                    ((MainActivity) v.getContext()).requestPermission();
-                }
+                    break;
+                case 1:
+                    Toast.makeText(v.getContext(), R.string.download_in_progress,
+                            Toast.LENGTH_SHORT).show();
+                    break;
             }
         });
     }

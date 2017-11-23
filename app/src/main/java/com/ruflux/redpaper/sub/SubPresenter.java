@@ -1,10 +1,8 @@
-package com.ruflux.redpaper;
+package com.ruflux.redpaper.sub;
 
 import com.ruflux.redpaper.data.Repository;
 
 import java.lang.ref.WeakReference;
-
-import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -13,38 +11,37 @@ import io.reactivex.schedulers.Schedulers;
 public class SubPresenter implements SubContract.Presenter {
 
     private WeakReference<SubContract.View> mView;
-    @Inject Repository mRepository;
+    private Repository mRepository;
     private CompositeDisposable mDisposable;
 
-    public SubPresenter(SubContract.View view) {
+    public SubPresenter(SubContract.View view, Repository repository) {
         mView = new WeakReference<>(view);
-        ((RedPaperApplication) view.fetchContext().getApplicationContext())
-                .getRepositoryComponent().inject(this);
+        mRepository = repository;
         mDisposable = new CompositeDisposable();
     }
 
     @Override
-    public void loadPosts() {
-        mView.get().startLoadProgress();
-        mDisposable.add(mRepository.fetchPosts(mView.get().getSelectedSub())
+    public void loadPosts(String sub) {
+        mView.get().onStartLoadProgress();
+        mDisposable.add(mRepository.fetchPosts(sub)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(posts -> {
                     if (mView.get() != null) {
-                        mView.get().stopLoadProgress();
+                        mView.get().onStopLoadProgress();
                         mView.get().showPosts(posts);
                     }
                 }, throwable -> {
                     if (mView.get() != null) {
-                        mView.get().stopLoadProgress();
-                        mView.get().showLoadError();
+                        mView.get().onStopLoadProgress();
+                        mView.get().onLoadError(throwable.getMessage());
                     }
                 }));
     }
 
     @Override
     public void start() {
-        loadPosts();
+
     }
 
     @Override

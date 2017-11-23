@@ -1,25 +1,23 @@
-package com.ruflux.redpaper;
+package com.ruflux.redpaper.sub;
 
 import com.ruflux.redpaper.data.model.Post;
 import com.ruflux.redpaper.mvp.Mvp;
 
 import java.util.List;
 
-interface SubContract {
+public interface SubContract {
 
     interface Presenter extends Mvp.BasePresenter {
-        void loadPosts();
+        void loadPosts(String sub);
     }
 
     interface View extends Mvp.BaseView<Presenter> {
         void showPosts(List<Post> posts);
 
-        void startLoadProgress();
+        void onStartLoadProgress();
 
-        void stopLoadProgress();
+        void onStopLoadProgress();
 
-        void showLoadError();
-
-        String getSelectedSub();
+        void onLoadError(String message);
     }
 }

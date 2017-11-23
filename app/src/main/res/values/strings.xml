@@ -5,4 +5,14 @@
     <string name="drawer_item_1">Road</string>
     <string name="drawer_item_2">Rural</string>
     <string name="drawer_item_3">Abandoned</string>
+
+    <string name="load_error">Could not fetch data:\u0020</string>
+    <string name="no_connection">No Connection</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="permission_denied">Permission Denied. Write permission required to download images</string>
+
+    <string name="flickr_link">Sorry, Flickr links cannot be downloaded on mobile</string>
+    <string name="downloading">Downloading image</string>
+    <string name="download_in_progress">Download already in progress</string>
+
 </resources>
