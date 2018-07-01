@@ -1,0 +1,11 @@
+ext {
+
+    androidBuildToolsVersion = "27.0.3"
+    androidMinSdkVersion = 21
+    androidTargetSdkVersion = 27
+    androidCompileSdkVersion = 27
+
+    kotlin_version = '1.2.50'
+
+    supportLibraryVersion = '27.1.1'
+}
