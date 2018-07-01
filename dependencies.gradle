@@ -8,4 +8,13 @@ ext {
     kotlin_version = '1.2.50'
 
     supportLibraryVersion = '27.1.1'
+    javaxAnnotationVersion = '1.0'
+    javaxInjectVersion = '1'
+    rxJava = '2.1.16'
+
+    domainDependencies = [
+            javaxAnnotation: "javax.annotation:jsr250-api:${javaxAnnotationVersion}",
+            javaxInject: "javax.inject:javax.inject:${javaxInjectVersion}",
+            rxJava: "io.reactivex.rxjava2:rxjava:${rxJava}"
+    ]
 }

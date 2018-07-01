@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+
+dependencies {
+    def domainDependencies = rootProject.ext.domainDependencies
+
+    implementation domainDependencies.javaxAnnotation
+    implementation domainDependencies.javaxInject
+    implementation domainDependencies.rxJava
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
