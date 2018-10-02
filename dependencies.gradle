@@ -5,16 +5,26 @@ ext {
     androidTargetSdkVersion = 27
     androidCompileSdkVersion = 27
 
-    kotlin_version = '1.2.50'
+    kotlin_version = '1.2.71'
 
     supportLibraryVersion = '27.1.1'
     javaxAnnotationVersion = '1.0'
     javaxInjectVersion = '1'
     rxJava = '2.1.16'
 
+    jUnitVersion = '4.12'
+    assertJVersion = '3.11.1'
+    mockitoVersion = '1.6.0'
+
     domainDependencies = [
             javaxAnnotation: "javax.annotation:jsr250-api:${javaxAnnotationVersion}",
             javaxInject: "javax.inject:javax.inject:${javaxInjectVersion}",
             rxJava: "io.reactivex.rxjava2:rxjava:${rxJava}"
+    ]
+
+    domainTestDependencies = [
+            jUnit: "junit:junit:${jUnitVersion}",
+            assertJ: "org.assertj:assertj-core:${assertJVersion}",
+            mockito: "com.nhaarman:mockito-kotlin:${mockitoVersion}"
     ]
 }
